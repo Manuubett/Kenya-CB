@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBE Owner | System Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Familjen+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#e8ecf4;--surface:#fff;--surf2:#f3f5fa;--border:#dce1ec;
+  --text:#131c2e;--text2:#4f6080;--text3:#9aaabb;
+  --accent:#1a56db;--ah:#1447c0;--alight:#eff4ff;
+  --green:#059669;--green-bg:#d1fae5;--green-tx:#065f46;
+  --amber:#d97706;--amber-bg:#fef3c7;--amber-tx:#92400e;
+  --red:#dc2626;--red-bg:#fee2e2;--red-tx:#991b1b;
+  --purple:#7c3aed;--purple-bg:#ede9fe;--purple-tx:#5b21b6;
+  --sh:0 1px 3px rgba(0,0,0,.06);--sh2:0 8px 28px rgba(0,0,0,.12);
+  --r:10px;--r2:6px;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh}
+#screenLoad{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:900}
+#screenLoad .spin{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .65s linear infinite}
+#screenLoad p{font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+#screenLogin{display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+#screenLogin.show{display:flex}
+#screenLogin::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:32px 32px;opacity:.5;pointer-events:none}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh2);width:100%;max-width:380px;position:relative;overflow:hidden;animation:cardIn .4s cubic-bezier(.22,1,.36,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),#3b82f6,var(--purple))}
+.lc-head{padding:28px 28px 20px;text-align:center}
+.lc-brand{display:inline-flex;align-items:center;gap:10px;margin-bottom:16px}
+.lc-icon{width:40px;height:40px;background:var(--accent);border-radius:10px;display:grid;place-items:center;font-size:20px;box-shadow:0 4px 14px rgba(26,86,219,.35)}
+.lc-name{font-family:'Familjen Grotesk',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.3px;text-align:left}
+.lc-sub{font-size:10px;color:var(--text3);text-align:left}
+.lc-title{font-family:'Familjen Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px}
+.lc-desc{font-size:12px;color:var(--text2)}
+.lc-badge{display:inline-block;margin-top:8px;background:var(--purple-bg);color:var(--purple-tx);border:1px solid #c4b5fd;font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.4px}
+.lc-body{padding:0 28px 28px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.inp-wrap{position:relative}
+.inp-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;opacity:.45}
+.inp{width:100%;height:40px;padding:0 12px 0 34px;border:1.5px solid var(--border);border-radius:var(--r2);font-family:inherit;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.inp::placeholder{color:var(--text3)}
+.alert{display:none;align-items:flex-start;gap:8px;padding:9px 12px;border-radius:var(--r2);font-size:12px;font-weight:500;line-height:1.5;margin-bottom:14px}
+.alert.show{display:flex}
+.alert.err{background:var(--red-bg);border:1px solid #fca5a5;color:var(--red-tx)}
+.submit-btn{width:100%;height:42px;background:linear-gradient(135deg,var(--accent),#2563eb);color:#fff;border:none;border-radius:var(--r2);font-family:'Familjen Grotesk',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;box-shadow:0 4px 14px rgba(26,86,219,.3)}
+.submit-btn:hover:not(:disabled){background:linear-gradient(135deg,var(--ah),#1d4ed8);transform:translateY(-1px)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.spin-sm{width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite}
+#screenDash{display:none}
+#screenDash.show{display:block}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:var(--sh)}
+.logo{display:flex;align-items:center;gap:9px}
+.lm{width:30px;height:30px;background:var(--accent);border-radius:7px;display:grid;place-items:center;color:#fff;font-size:15px}
+.lt{font-family:'Familjen Grotesk',sans-serif;font-size:14px;font-weight:800;letter-spacing:-.3px}
+.ls{font-size:10px;color:var(--text3)}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.owner-badge{background:var(--purple-bg);color:var(--purple-tx);border:1px solid #c4b5fd;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.3px}
+.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0;position:sticky;top:52px;z-index:190;box-shadow:var(--sh);overflow-x:auto}
+.nav-tab{padding:13px 16px;font-size:12.5px;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .14s;display:flex;align-items:center;gap:6px;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.nav-tab:hover{color:var(--text2)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-badge{background:var(--red);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;margin-left:2px}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:var(--r2);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:all .14s;white-space:nowrap;height:32px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--ah)}
+.btn-success{background:var(--green);color:#fff}.btn-success:hover{background:#047857}
+.btn-outline{background:none;border:1.5px solid var(--border);color:var(--text2)}.btn-outline:hover{background:var(--bg);color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#b91c1c}
+.btn-sm{padding:3px 9px;font-size:11.5px;height:26px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.ml-auto{margin-left:auto}
+.outer{padding:20px 24px;max-width:1280px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:4px;animation:fadeUp .3s ease both;position:relative}
+.stat-card:nth-child(2){animation-delay:.05s}.stat-card:nth-child(3){animation-delay:.1s}.stat-card:nth-child(4){animation-delay:.15s}.stat-card:nth-child(5){animation-delay:.2s}.stat-card:nth-child(6){animation-delay:.25s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.stat-icon{font-size:20px;margin-bottom:2px}
+.stat-val{font-family:'Familjen Grotesk',sans-serif;font-size:28px;font-weight:800;line-height:1}
+.stat-lbl{font-size:10.5px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.s-green .stat-val{color:var(--green)}.s-amber .stat-val{color:var(--amber)}.s-red .stat-val{color:var(--red)}.s-purple .stat-val{color:var(--purple)}
+.stat-alert{position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px}
+.sec-title{font-family:'Familjen Grotesk',sans-serif;font-size:16px;font-weight:800}
+.sec-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search-wrap{position:relative}
+.search-wrap input{height:32px;padding:0 10px 0 30px;border:1.5px solid var(--border);border-radius:var(--r2);font-family:inherit;font-size:12.5px;color:var(--text);background:var(--surface);outline:none;width:220px;transition:border-color .14s}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap::before{content:'🔍';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;opacity:.5}
+.fsel{height:32px;padding:0 9px;border:1.5px solid var(--border);border-radius:var(--r2);font-family:inherit;font-size:12.5px;color:var(--text);background:var(--surface);cursor:pointer;outline:none}
+.fsel:focus{border-color:var(--accent)}
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;animation:fadeUp .35s .1s ease both;margin-bottom:22px}
+.tbl-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:700px}
+thead th{background:#1e2d4d;color:#c8d8f8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:0 14px;text-align:left;height:34px;white-space:nowrap;border-bottom:1px solid #2d3e61}
+thead th.tc{text-align:center}
+tbody td{padding:0 14px;height:46px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surf2)}
+tbody td.tc{text-align:center}
+.t-name{font-weight:700}.t-sub{font-size:11.5px;color:var(--text3);margin-top:1px}.t-mono{font-family:monospace;font-size:11.5px;color:var(--text2)}
+.sbadge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700}
+.sbadge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sbadge.active,.sbadge.approved{background:var(--green-bg);color:var(--green-tx)}.sbadge.active::before,.sbadge.approved::before{background:var(--green)}
+.sbadge.pending{background:var(--amber-bg);color:var(--amber-tx)}.sbadge.pending::before{background:var(--amber)}
+.sbadge.suspended{background:var(--red-bg);color:var(--red-tx)}.sbadge.suspended::before{background:var(--red)}
+.sbadge.flagged{background:var(--red-bg);color:var(--red-tx)}.sbadge.flagged::before{background:var(--red);animation:pulse 1.5s infinite}
+.act-wrap{display:flex;align-items:center;gap:5px;justify-content:flex-end}
+.act-btn{padding:3px 10px;border-radius:5px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all .12s;white-space:nowrap}
+.act-approve,.act-restore{background:var(--green-bg);color:var(--green-tx)}.act-approve:hover,.act-restore:hover{background:#a7f3d0}
+.act-block,.act-revoke{background:var(--red-bg);color:var(--red-tx)}.act-block:hover,.act-revoke:hover{background:#fecaca}
+.act-msg{background:var(--amber-bg);color:var(--amber-tx)}.act-msg:hover{background:#fde68a}
+.act-edit{background:var(--surf2);color:var(--text2);border:1px solid var(--border)}.act-edit:hover{background:var(--bg)}
+.act-view{background:var(--alight);color:var(--accent)}.act-view:hover{background:#c7d9ff}
+.empty-row td{text-align:center;padding:44px;color:var(--text3)}
+.empty-icon{font-size:30px;margin-bottom:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh2);width:100%;max-width:460px;animation:modalIn .22s cubic-bezier(.22,1,.36,1) both;max-height:90vh;overflow-y:auto}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:2}
+.modal-title{font-family:'Familjen Grotesk',sans-serif;font-size:15px;font-weight:800}
+.modal-close{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text3);line-height:1;padding:2px}.modal-close:hover{color:var(--text)}
+.modal-body{padding:20px}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.minp{width:100%;height:36px;padding:0 10px;border:1.5px solid var(--border);border-radius:var(--r2);font-family:inherit;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .14s}
+.minp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+select.minp{cursor:pointer}
+textarea.minp{height:auto;padding:8px 10px;resize:vertical;min-height:80px}
+.mfield{margin-bottom:14px}
+.mfield label{display:block;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.mfield .hint{font-size:11px;color:var(--text3);margin-top:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.confirm-icon{font-size:36px;text-align:center;margin-bottom:10px}
+.confirm-msg{font-size:13px;color:var(--text2);text-align:center;line-height:1.7}
+.school-info-box{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;margin-bottom:14px}
+.school-info-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.school-info-val{font-size:14px;font-weight:800;color:var(--text)}
+.alert-cards{display:flex;flex-direction:column;gap:10px}
+.alert-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px;display:flex;align-items:flex-start;gap:12px}
+.alert-card.ac-red{border-left:3px solid var(--red);background:var(--red-bg)}
+.alert-card.ac-amber{border-left:3px solid var(--amber);background:var(--amber-bg)}
+.alert-card.ac-green{border-left:3px solid var(--green);background:var(--green-bg)}
+.ac-icon{font-size:18px;flex-shrink:0;margin-top:1px}.ac-body{flex:1}
+.ac-title{font-weight:700;font-size:13px;color:var(--text)}.ac-desc{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.5}.ac-time{font-size:10.5px;color:var(--text3);margin-top:4px}
+.ac-dismiss{background:none;border:1px solid var(--border);color:var(--text3);padding:3px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit;flex-shrink:0}.ac-dismiss:hover{background:var(--bg)}
+.sdetail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sdetail-box{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px}
+.sdb-lbl{font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.sdb-val{font-size:13px;font-weight:600;color:var(--text);word-break:break-all}
+.row-flagged td{background:var(--red-bg)!important}.row-flagged:hover td{background:#fecaca!important}
+
+/* ── SCHOOL DETAIL PANEL ── */
+.school-panel{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);box-shadow:var(--sh);
+  margin-bottom:20px;overflow:hidden;
+  animation:fadeUp .25s ease;
+}
+.school-panel-head{
+  padding:14px 20px;background:var(--surf2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.school-panel-name{font-family:'Familjen Grotesk',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px}
+.school-panel-body{padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.spd-box{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px}
+.spd-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.spd-val{font-size:14px;font-weight:700;color:var(--text)}
+.spd-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* Live dot */
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0}
+.live-label{font-size:11px;color:var(--green-tx);font-weight:700;background:var(--green-bg);padding:2px 8px;border-radius:20px;border:1px solid #a7f3d0;display:inline-flex;align-items:center;gap:4px}
+
+/* Action strip */
+.action-strip{
+  padding:12px 20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surf2);
+}
+.action-strip-title{font-size:11.5px;font-weight:700;color:var(--text2);margin-right:4px}
+
+/* Message preview in schools table */
+.msg-preview{font-size:11px;color:var(--amber-tx);background:var(--amber-bg);padding:2px 8px;border-radius:3px;border:1px solid #fcd34d;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle}
+
+/* Row highlight for active schools */
+.row-active td{background:#f0fdf4}
+.row-active:hover td{background:#dcfce7!important}
+.row-blocked td{background:var(--red-bg)}
+.row-blocked:hover td{background:#fecaca!important}
+
+#tc{position:fixed;top:62px;right:16px;z-index:999;display:flex;flex-direction:column;gap:6px}
+.t{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:var(--r2);font-size:12.5px;font-weight:500;box-shadow:var(--sh2);animation:tin .25s ease;min-width:210px}
+.t.ok{background:#064e3b;color:#ecfdf5;border-left:3px solid #10b981}
+.t.err{background:#7f1d1d;color:#fef2f2;border-left:3px solid #ef4444}
+.t.info{background:#1e3a5f;color:#dbeafe;border-left:3px solid var(--accent)}
+@keyframes tin{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes tout{to{transform:translateX(110%);opacity:0}}
+</style>
+<!-- OneSignal — receives push notifications for new registrations -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "141d7cd0-8727-4066-a62c-8e0da7f85762",
+      notifyButton: {
+        enable: true,
+        size: 'medium',
+        position: 'bottom-right',
+        text: {
+          'tip.state.unsubscribed': 'Enable notifications for new registrations',
+          'tip.state.subscribed': 'Notifications enabled',
+          'message.prenotify': 'Click to enable push notifications',
+          'message.action.subscribed': 'Notifications enabled!',
+        }
+      },
+      allowLocalhostAsSecureOrigin: true,
+    });
+    // Auto-subscribe owner when they log in
+    OneSignal.on('subscriptionChange', function(isSubscribed) {
+      console.log('OneSignal subscription:', isSubscribed);
+    });
+  });
+</script>
+</head>
+<body>
+<div id="tc"></div>
+<div id="screenLoad"><div class="spin"></div><p>Verifying owner access…</p></div>
+
+<!-- LOGIN -->
+<div id="screenLogin">
+  <div class="login-card">
+    <div class="lc-head">
+      <div class="lc-brand">
+        <div class="lc-icon">👑</div>
+        <div><div class="lc-name">CBE Mark Sheet</div><div class="lc-sub">System Owner Panel</div></div>
+      </div>
+      <div class="lc-title">Owner Access</div>
+      <div class="lc-desc">Monitor and manage all schools</div>
+      <div class="lc-badge">👑 OWNER ONLY</div>
+    </div>
+    <div class="lc-body">
+      <div class="alert err" id="loginErr"><span>⚠️</span><span id="loginErrMsg"></span></div>
+      <div class="field"><label>Email</label><div class="inp-wrap"><span class="inp-icon">✉️</span><input class="inp" type="email" id="liEmail" placeholder="owner@cbe.ac.ke" autocomplete="email"></div></div>
+      <div class="field"><label>Password</label><div class="inp-wrap"><span class="inp-icon">🔑</span><input class="inp" type="password" id="liPass" placeholder="••••••••" autocomplete="current-password"></div></div>
+      <button class="submit-btn" id="loginBtn" onclick="doLogin()"><span id="loginBtnTxt">Sign In as Owner</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="screenDash">
+
+  <!-- Session modal -->
+  <div class="overlay" id="sessionModal">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-head"><div class="modal-title">🔍 Session Detail</div><button class="modal-close" onclick="closeModal('sessionModal')">✕</button></div>
+      <div class="modal-body" id="sessionModalBody"></div>
+      <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('sessionModal')">Close</button><button class="btn btn-danger btn-sm" id="revokeSessionBtn" style="display:none">🚫 Revoke</button></div>
+    </div>
+  </div>
+
+  <!-- Message modal -->
+  <div class="overlay" id="msgModal">
+    <div class="modal" style="max-width:500px">
+      <div class="modal-head"><div class="modal-title">📩 Payment Message</div><button class="modal-close" onclick="closeModal('msgModal')">✕</button></div>
+      <div class="modal-body">
+        <div class="school-info-box">
+          <div class="school-info-lbl">Sending to</div>
+          <div class="school-info-val" id="msgSchoolName">—</div>
+        </div>
+        <div style="background:var(--amber-bg);border:1px solid #fcd34d;border-radius:var(--r2);padding:9px 12px;margin-bottom:14px;font-size:12px;color:var(--amber-tx)">
+          ⚠️ Saving this message will <strong>immediately block</strong> their admin dashboard until you approve them.
+          Clearing the message and saving restores full access.
+        </div>
+        <div class="mfield">
+          <label>Message <span style="color:var(--red)">*</span></label>
+          <textarea class="minp" id="msgText" style="min-height:90px" placeholder="e.g. Dear School, please pay Ksh 5,000 via M-Pesa to 0712345678 and send the confirmation to this number to activate your system."></textarea>
+        </div>
+        <div class="grid2">
+          <div class="mfield"><label>Contact Link</label><input class="minp" id="msgContact" placeholder="https://wa.me/254712345678"></div>
+          <div class="mfield"><label>Footer Note</label><input class="minp" id="msgFooter" placeholder="CBE System · 0712345678"></div>
+        </div>
+        <div class="mfield" style="margin-bottom:0">
+          <label>Quick Templates</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="act-btn act-view btn-sm" onclick="setMsgTemplate('payment')">💰 Payment Due</button>
+            <button class="act-btn act-view btn-sm" onclick="setMsgTemplate('expired')">⏰ Licence Expired</button>
+            <button class="act-btn act-view btn-sm" onclick="setMsgTemplate('renew')">🔄 Renewal</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('msgModal')">Cancel</button>
+        <button class="btn btn-danger btn-sm" onclick="clearMessage()" style="margin-right:auto">🗑️ Clear Message</button>
+        <button class="btn btn-primary" onclick="sendMessage()">📩 Send & Block</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add admin -->
+  <div class="overlay" id="addAdminModal">
+    <div class="modal">
+      <div class="modal-head"><div class="modal-title">➕ Register Admin</div><button class="modal-close" onclick="closeModal('addAdminModal')">✕</button></div>
+      <div class="modal-body">
+        <div class="grid2"><div class="mfield"><label>Full Name *</label><input class="minp" id="aaName" placeholder="Jane Mwangi"></div><div class="mfield"><label>School *</label><input class="minp" id="aaSchool" placeholder="Embu Junior School"></div></div>
+        <div class="mfield"><label>Email *</label><input class="minp" id="aaEmail" type="email" placeholder="admin@school.ac.ke"></div>
+        <div class="mfield">
+          <label>School Code * <span style="font-size:10px;color:var(--text3);font-weight:500">(unique code given to admin for login)</span></label>
+          <input class="minp" id="aaCode" placeholder="e.g. EMB001" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Admin enters this code at login to identify their school — must be unique</div>
+        </div>
+        <div class="grid2"><div class="mfield"><label>Phone</label><input class="minp" id="aaPhone" placeholder="0712345678"></div><div class="mfield"><label>County</label><input class="minp" id="aaCounty" placeholder="Embu County"></div></div>
+        <div class="grid2"><div class="mfield"><label>Licence</label><select class="minp" id="aaLicence"><option value="trial">Trial</option><option value="annual">Annual</option><option value="lifetime">Lifetime</option></select></div><div class="mfield"><label>Expires</label><input class="minp" id="aaExpiry" type="date"></div></div>
+        <div class="mfield"><label>Notes</label><input class="minp" id="aaNotes" placeholder="e.g. Paid via M-Pesa ref: XXXX"></div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('addAdminModal')">Cancel</button><button class="btn btn-primary" onclick="saveAdmin()">Register</button></div>
+    </div>
+  </div>
+
+  <!-- Edit admin -->
+  <div class="overlay" id="editAdminModal">
+    <div class="modal">
+      <div class="modal-head"><div class="modal-title">✏️ Edit Admin</div><button class="modal-close" onclick="closeModal('editAdminModal')">✕</button></div>
+      <div class="modal-body">
+        <div class="grid2"><div class="mfield"><label>Full Name</label><input class="minp" id="eaName"></div><div class="mfield"><label>School</label><input class="minp" id="eaSchool"></div></div>
+        <div class="mfield"><label>Email</label><input class="minp" id="eaEmail" type="email"></div>
+        <div class="grid2"><div class="mfield"><label>Phone</label><input class="minp" id="eaPhone"></div><div class="mfield"><label>County</label><input class="minp" id="eaCounty"></div></div>
+        <div class="grid2"><div class="mfield"><label>Licence</label><select class="minp" id="eaLicence"><option value="trial">Trial</option><option value="annual">Annual</option><option value="lifetime">Lifetime</option></select></div><div class="mfield"><label>Expires</label><input class="minp" id="eaExpiry" type="date"></div></div>
+        <div class="grid2"><div class="mfield"><label>Status</label><select class="minp" id="eaStatus"><option value="active">Active</option><option value="suspended">Suspended</option><option value="trial">Trial</option></select></div><div class="mfield"><label>Max Logins</label><input class="minp" id="eaMaxLogins" type="number" min="1" max="20" placeholder="3"></div></div>
+        <div class="mfield"><label>Notes</label><input class="minp" id="eaNotes"></div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('editAdminModal')">Cancel</button><button class="btn btn-primary" onclick="saveEditAdmin()">Save Changes</button></div>
+    </div>
+  </div>
+
+  <!-- Approve Registration Modal — generate code and send via WhatsApp -->
+  <div class="overlay" id="approveRegModal">
+    <div class="modal" style="max-width:500px">
+      <div class="modal-head"><div class="modal-title">✅ Approve Registration</div><button class="modal-close" onclick="closeModal('approveRegModal')">✕</button></div>
+      <div class="modal-body">
+        <div class="school-info-box">
+          <div class="school-info-lbl">School</div>
+          <div class="school-info-val" id="arSchoolName">—</div>
+        </div>
+        <div class="mfield">
+          <label>School Code <span style="color:var(--red)">*</span></label>
+          <input class="minp" id="arCode" placeholder="e.g. EMB001" style="text-transform:uppercase;font-family:monospace;font-size:15px;font-weight:700" oninput="this.value=this.value.toUpperCase()">
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Unique code the school will enter at login. Use school initials + number e.g. EMB001</div>
+        </div>
+        <div class="mfield">
+          <label>Admin Email (for login)</label>
+          <input class="minp" id="arEmail" type="email" placeholder="admin@school.ac.ke">
+        </div>
+        <div class="mfield">
+          <label>Temporary Password</label>
+          <input class="minp" id="arPassword" placeholder="e.g. CBE@2026" value="CBE@2026">
+        </div>
+        <div class="mfield">
+          <label>Message to School</label>
+          <textarea class="minp" id="arMessage" style="min-height:80px;padding:8px 10px">Your school has been approved! Here are your login credentials:
+
+School Code: [CODE]
+Email: [EMAIL]
+Password: [PASSWORD]
+
+Visit https://bett.website/admin to login. Change your password after first login.
+
+Thank you — CBE Mark Sheet System</textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('approveRegModal')">Cancel</button>
+        <button class="btn btn-success" onclick="sendApproval()">✅ Approve & Send via WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm -->
+  <div class="overlay" id="confirmModal">
+    <div class="modal" style="max-width:360px">
+      <div class="modal-head"><div class="modal-title" id="confTitle">Confirm</div><button class="modal-close" onclick="closeModal('confirmModal')">✕</button></div>
+      <div class="modal-body"><div class="confirm-icon" id="confIcon">⚠️</div><div class="confirm-msg" id="confMsg"></div></div>
+      <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('confirmModal')">Cancel</button><button class="btn" id="confBtn">Confirm</button></div>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo"><div class="lm">👑</div><div><div class="lt">CBE Owner</div><div class="ls">System Monitor · Kenya CBC</div></div></div>
+    <div class="hdr-r">
+      <span class="owner-badge">👑 OWNER</span>
+      <span id="ownerName" style="font-size:11.5px;color:var(--text2);font-weight:600"></span>
+      <span id="dateDisplay" style="font-size:11.5px;color:var(--text3)"></span>
+      <button class="btn btn-outline btn-sm" onclick="loadAll()">🔄 Refresh</button>
+      <button class="btn btn-outline btn-sm" style="color:#ef4444;border-color:rgba(239,68,68,.3)" onclick="doLogout()">🚪 Sign Out</button>
+    </div>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('overview',this)">📊 Overview</button>
+    <button class="nav-tab" onclick="switchTab('registrations',this)">📝 Registrations <span class="tab-badge" id="regBadge" style="display:none"></span></button>
+    <button class="nav-tab" onclick="switchTab('schools',this)">🏫 Schools <span class="tab-badge" id="pendingBadge" style="display:none"></span></button>
+    <button class="nav-tab" onclick="switchTab('admins',this)">👥 Admins</button>
+    <button class="nav-tab" onclick="switchTab('sessions',this)">🔐 Sessions</button>
+    <button class="nav-tab" onclick="switchTab('alerts',this)">🚨 Alerts <span class="tab-badge" id="alertBadge" style="display:none"></span></button>
+    <button class="nav-tab" onclick="switchTab('log',this)">📋 Activity Log</button>
+    <a class="nav-tab" href="https://bett.website/db-cleaner" target="_blank" style="color:#dc2626;margin-left:auto">🗑️ DB Cleaner ↗</a>
+  </div>
+
+  <div class="outer">
+
+    <!-- OVERVIEW -->
+    <div class="tab-pane active" id="tab-overview">
+      <div class="stats">
+        <div class="stat-card s-purple"><div class="stat-icon">🏫</div><div class="stat-val" id="stSchools">—</div><div class="stat-lbl">Total Schools</div></div>
+        <div class="stat-card s-green"><div class="stat-icon">✅</div><div class="stat-val" id="stApproved">—</div><div class="stat-lbl">Approved</div></div>
+        <div class="stat-card s-amber" style="cursor:pointer" onclick="switchTab('schools',document.querySelectorAll('.nav-tab')[1])"><div class="stat-icon">⏳</div><div class="stat-val" id="stPending">—</div><div class="stat-lbl">Awaiting Approval</div></div>
+        <div class="stat-card s-red"><div class="stat-icon">🚫</div><div class="stat-val" id="stBlocked">—</div><div class="stat-lbl">Blocked</div></div>
+        <div class="stat-card s-green"><div class="stat-icon">👥</div><div class="stat-val" id="stAdmins">—</div><div class="stat-lbl">Admin Accounts</div></div>
+        <div class="stat-card s-red"><div class="stat-icon">🚨</div><div class="stat-val" id="stFlagged">—</div><div class="stat-lbl">Flagged Sessions</div><div class="stat-alert" id="flaggedDot" style="display:none"></div></div>
+      </div>
+      <div class="sec-head"><div class="sec-title">Recent Logins (Last 24h)</div></div>
+      <div class="table-card"><div class="tbl-scroll"><table>
+        <thead><tr><th>Admin / School</th><th>Email</th><th>Device</th><th class="tc">IP</th><th>Time</th><th class="tc">Status</th><th class="tc">Action</th></tr></thead>
+        <tbody id="recentTbody"><tr class="empty-row"><td colspan="7"><div class="empty-icon">⏳</div><div>Loading…</div></td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- REGISTRATIONS -->
+    <div class="tab-pane" id="tab-registrations">
+      <div class="sec-head">
+        <div class="sec-title">School Registration Requests <span id="regCountLabel" style="font-size:12px;font-weight:600;color:var(--text3)"></span></div>
+        <div class="sec-tools">
+          <div class="search-wrap"><input type="text" id="regSearch" placeholder="Search school, county…" oninput="renderRegistrations()"></div>
+          <select class="fsel" id="regFilter" onchange="renderRegistrations()">
+            <option value="">All</option><option value="pending">Pending</option>
+            <option value="approved">Approved</option><option value="rejected">Rejected</option>
+          </select>
+          <button class="btn btn-outline" onclick="loadRegistrations()">🔄 Refresh</button>
+        </div>
+      </div>
+      <div id="regCards" style="display:flex;flex-direction:column;gap:12px">
+        <div style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:28px;margin-bottom:8px">📝</div>Loading registrations…</div>
+      </div>
+    </div>
+
+    <!-- SCHOOLS -->
+    <div class="tab-pane" id="tab-schools">
+
+      <!-- School detail panel (shown when a row is clicked) -->
+      <div class="school-panel" id="schoolPanel" style="display:none">
+        <div class="school-panel-head">
+          <div class="school-panel-name">
+            <span id="spName">—</span>
+            <span id="spLiveLabel"></span>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="closeSchoolPanel()">✕ Close</button>
+        </div>
+        <div class="school-panel-body">
+          <div class="spd-box"><div class="spd-lbl">County</div><div class="spd-val" id="spCounty">—</div></div>
+          <div class="spd-box"><div class="spd-lbl">Admin UID</div><div class="spd-val t-mono" style="font-size:11px;word-break:break-all" id="spUid">—</div></div>
+          <div class="spd-box"><div class="spd-lbl">First Detected</div><div class="spd-val" id="spDetected">—</div></div>
+          <div class="spd-box"><div class="spd-lbl">Total Logins</div><div class="spd-val" id="spLogins">—</div><div class="spd-sub" id="spLastLogin"></div></div>
+          <div class="spd-box"><div class="spd-lbl">Active Sessions</div><div class="spd-val" id="spActiveSess">—</div></div>
+          <div class="spd-box"><div class="spd-lbl">Status</div><div class="spd-val" id="spStatus">—</div></div>
+        </div>
+        <div id="spMsgPreview" style="display:none;padding:0 20px 14px">
+          <div style="font-size:11px;font-weight:700;color:var(--amber-tx);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">📩 Current Message Sent</div>
+          <div style="background:var(--amber-bg);border:1px solid #fcd34d;border-radius:var(--r2);padding:10px 14px;font-size:12.5px;color:var(--amber-tx);line-height:1.6" id="spMsgText"></div>
+        </div>
+        <div class="action-strip">
+          <span class="action-strip-title">Actions:</span>
+          <button class="act-btn act-msg" onclick="openMsgModal(_selectedSchoolId)">📩 Send/Edit Message</button>
+          <button class="act-btn act-approve" id="spApproveBtn" onclick="setPendingStatus(_selectedSchoolId,'approved')">✅ Approve & Unblock</button>
+          <button class="act-btn act-block" id="spBlockBtn" onclick="setPendingStatus(_selectedSchoolId,'suspended')">🔒 Block</button>
+          <button class="act-btn act-view" onclick="viewSchoolSessions(_selectedSchoolId)" style="margin-left:auto">🔐 View Sessions</button>
+        </div>
+      </div>
+
+      <!-- Pending Approval Requests — shown prominently when new schools register -->
+      <div class="requests-panel" id="requestsPanel" style="display:none">
+        <div class="requests-head">
+          <div class="requests-title">
+            🔔 Pending Approval Requests
+            <span class="requests-count" id="requestsCount">0</span>
+          </div>
+          <span style="font-size:11.5px;color:var(--amber-tx);font-weight:600">These schools are waiting — approve after payment confirmed</span>
+        </div>
+        <div class="request-cards" id="requestCards"></div>
+      </div>
+
+      <div class="sec-head">
+        <div class="sec-title">All Schools <span id="schoolsCountLabel" style="font-size:12px;font-weight:600;color:var(--text3)"></span></div>
+        <div class="sec-tools">
+          <div class="search-wrap"><input type="text" id="schoolSearch" placeholder="Search school, county…" oninput="renderSchools()"></div>
+          <select class="fsel" id="schoolFilter" onchange="renderSchools()">
+            <option value="">All Status</option>
+            <option value="pending">⏳ Pending</option>
+            <option value="approved">✅ Approved</option>
+            <option value="suspended">🔒 Blocked</option>
+          </select>
+          <button class="btn btn-outline" onclick="loadPending()">🔄 Refresh</button>
+          <span id="liveSchoolsLabel" style="font-size:12px;color:var(--green-tx);font-weight:700;display:none">
+            <span class="live-dot" style="display:inline-block;margin-right:4px"></span> <span id="liveCount">0</span> online now
+          </span>
+        </div>
+      </div>
+
+      <div class="table-card"><div class="tbl-scroll"><table>
+        <thead><tr>
+          <th>#</th>
+          <th>School</th>
+          <th>County</th>
+          <th>Detected</th>
+          <th class="tc">Online</th>
+          <th class="tc">Logins</th>
+          <th class="tc">Status</th>
+          <th class="tc">Message</th>
+          <th class="tc">Quick Actions</th>
+        </tr></thead>
+        <tbody id="schoolsTbody"><tr class="empty-row"><td colspan="9"><div class="empty-icon">🏫</div><div>Loading…</div></td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ADMINS -->
+    <div class="tab-pane" id="tab-admins">
+      <div class="sec-head">
+        <div class="sec-title">Admin Accounts</div>
+        <div class="sec-tools">
+          <div class="search-wrap"><input type="text" id="adminSearch" placeholder="Search name, school, email…" oninput="renderAdmins()"></div>
+          <select class="fsel" id="adminFilterStatus" onchange="renderAdmins()"><option value="">All Status</option><option value="active">Active</option><option value="trial">Trial</option><option value="suspended">Suspended</option></select>
+          <button class="btn btn-outline" onclick="loadAdmins()">🔄 Refresh</button>
+          <button class="btn btn-primary ml-auto" onclick="openModal('addAdminModal')">➕ Register Admin</button>
+        </div>
+      </div>
+      <div class="table-card"><div class="tbl-scroll"><table>
+        <thead><tr><th>#</th><th>Admin</th><th>School</th><th>County</th><th>Licence</th><th class="tc">Status</th><th class="tc">Last Login</th><th class="tc">Actions</th></tr></thead>
+        <tbody id="adminsTbody"><tr class="empty-row"><td colspan="8"><div class="empty-icon">👥</div><div>Loading…</div></td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- SESSIONS -->
+    <div class="tab-pane" id="tab-sessions">
+      <div class="sec-head">
+        <div class="sec-title">Login Sessions</div>
+        <div class="sec-tools">
+          <div class="search-wrap"><input type="text" id="sessSearch" placeholder="Search email, school, IP…" oninput="renderSessions()"></div>
+          <select class="fsel" id="sessFilter" onchange="renderSessions()"><option value="">All</option><option value="flagged">🚨 Flagged</option><option value="active">Active</option></select>
+          <button class="btn btn-outline" onclick="loadSessions()">🔄 Refresh</button>
+          <button class="btn btn-danger ml-auto btn-sm" onclick="confirmRevokeAll()">🚫 Revoke Flagged</button>
+        </div>
+      </div>
+      <div class="table-card"><div class="tbl-scroll"><table>
+        <thead><tr><th>Admin / School</th><th>Device</th><th class="tc">IP</th><th>Login Time</th><th>Duration</th><th class="tc">Flag</th><th class="tc">Actions</th></tr></thead>
+        <tbody id="sessionsTbody"><tr class="empty-row"><td colspan="7"><div class="empty-icon">🔐</div><div>Loading…</div></td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="tab-pane" id="tab-alerts">
+      <div class="sec-head">
+        <div class="sec-title">Security Alerts</div>
+        <div class="sec-tools"><span style="font-size:12px;color:var(--text2)">Auto-detected from login patterns</span><button class="btn btn-outline ml-auto btn-sm" onclick="loadAlerts()">🔄 Refresh</button></div>
+      </div>
+      <div class="alert-cards" id="alertsContainer"><div class="alert-card"><div class="ac-icon">⏳</div><div class="ac-body"><div class="ac-title">Loading alerts…</div></div></div></div>
+    </div>
+
+    <!-- LOG -->
+    <div class="tab-pane" id="tab-log">
+      <div class="sec-head">
+        <div class="sec-title">Activity Log</div>
+        <div class="sec-tools">
+          <div class="search-wrap"><input type="text" id="logSearch" placeholder="Search log…" oninput="renderLog()"></div>
+          <select class="fsel" id="logFilter" onchange="renderLog()"><option value="">All Events</option><option value="message_sent">Messages Sent</option><option value="school_approved">Approved</option><option value="school_blocked">Blocked</option><option value="login">Logins</option></select>
+          <button class="btn btn-outline" onclick="loadActivityLog()">🔄 Refresh</button>
+        </div>
+      </div>
+      <div class="table-card"><div class="tbl-scroll"><table>
+        <thead><tr><th>Event</th><th>Admin / School</th><th>Detail</th><th>Time</th></tr></thead>
+        <tbody id="logTbody"><tr class="empty-row"><td colspan="4"><div class="empty-icon">📋</div><div>Loading…</div></td></tr></tbody>
+      </table></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyBdabXqlBQ-6yVNJKdu8Zhb9Cm_-59_u24",authDomain:"bett-294a2.firebaseapp.com",projectId:"bett-294a2",storageBucket:"bett-294a2.appspot.com",messagingSenderId:"1055511650032",appId:"1:1055511650032:web:7e0f9c28e58515f549ac35"});
+const db=firebase.firestore(), auth=firebase.auth();
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
+const el=id=>document.getElementById(id);
+let allAdmins=[],allSessions=[],allAlerts=[],allLog=[],allPending=[];
+let allRegistrations=[],_regUnsub=null,_approvingRegId=null;
+let editingAdminId=null,editingPendingId=null;
+let _schoolsUnsub=null,_selectedSchoolId=null;
+let _prevPendingIds=new Set();
+
+el('dateDisplay').textContent=new Date().toLocaleDateString('en-KE',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+
+function show(s){['screenLoad','screenLogin','screenDash'].forEach(id=>{const n=el(id);n.style.display='none';n.classList.remove('show');});const t=el('screen'+s);if(s==='Load')t.style.display='flex';else if(s==='Login'){t.style.display='flex';t.classList.add('show');}else{t.style.display='block';t.classList.add('show');}}
+function switchTab(name,btn){document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));el('tab-'+name).classList.add('active');btn.classList.add('active');}
+function openModal(id){el(id).classList.add('open');}
+function closeModal(id){el(id).classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));});
+function toast(msg,type='ok'){const t=document.createElement('div');t.className=`t ${type}`;t.innerHTML=`<span>${type==='ok'?'✅':type==='err'?'❌':'ℹ️'}</span>${msg}`;el('tc').appendChild(t);setTimeout(()=>{t.style.animation='tout .25s ease forwards';setTimeout(()=>t.remove(),280);},2800);}
+
+// ── AUTH — Owner gate ──
+// Show loading screen first, onAuthStateChanged decides what to show
+show('Load');
+
+auth.onAuthStateChanged(async u=>{
+  if(!u){
+    // Not signed in — show login screen
+    show('Login');
+    return;
+  }
+
+  // Signed in — verify this is the owner by reading their users doc
+  try{
+    const snap = await db.collection('users').doc(u.uid).get();
+    if(snap.exists && snap.data().role === 'owner'){
+      // ✅ Owner confirmed
+      const name = snap.data().fullName || snap.data().email || 'Owner';
+      el('ownerName').textContent = '👑 ' + name;
+      show('Dash');
+      loadAll();
+      // Store owner uid for rules reference
+      sessionStorage.setItem('cbe_owner_uid', u.uid);
+      writeLog('login','Owner signed in',null,'blue').catch(()=>{});
+      return;
+    }
+
+    // Signed in but NOT owner — sign out and show error
+    await auth.signOut();
+    show('Login');
+    el('loginErrMsg').textContent = 'Access denied — owner account required.';
+    el('loginErr').classList.add('show');
+
+  }catch(e){
+    // If users doc not found — allow if this is a known owner account
+    // (first time setup where owner doc may not exist yet)
+    console.warn('Owner check failed:', e.message);
+    show('Login');
+    el('loginErrMsg').textContent = 'Could not verify owner status. Try again.';
+    el('loginErr').classList.add('show');
+    await auth.signOut();
+  }
+});
+
+async function doLogin(){
+  el('loginErr').classList.remove('show');
+  const email=el('liEmail').value.trim(),pass=el('liPass').value;
+  if(!email||!pass){el('loginErrMsg').textContent='Fill in all fields.';el('loginErr').classList.add('show');return;}
+  const btn=el('loginBtn'),txt=el('loginBtnTxt');
+  btn.disabled=true;txt.innerHTML='<div class="spin-sm"></div> Verifying…';
+  try{await auth.signInWithEmailAndPassword(email,pass);}
+  catch(e){btn.disabled=false;txt.textContent='Sign In as Owner';el('loginErrMsg').textContent=e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'?'Invalid credentials.':e.message;el('loginErr').classList.add('show');}
+}
+el('liPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+async function doLogout(){await writeLog('logout','Owner signed out',null,'amber');await auth.signOut();}
+
+function loadAll(){loadRegistrations();loadPending();loadAdmins();loadSessions();loadAlerts();loadActivityLog();}
+
+// ── REGISTRATIONS ──
+function loadRegistrations(){
+  if(_regUnsub) _regUnsub();
+  _regUnsub = db.collection('schoolRegistrations')
+    .orderBy('submittedAt','desc')
+    .onSnapshot(snap=>{
+      allRegistrations=[];
+      snap.forEach(d=>allRegistrations.push({id:d.id,...d.data()}));
+      const pending = allRegistrations.filter(r=>r.status==='pending').length;
+      const rb = el('regBadge');
+      rb.textContent=pending; rb.style.display=pending>0?'inline':'none';
+      el('regCountLabel').textContent = '('+allRegistrations.length+' total, '+pending+' pending)';
+      renderRegistrations();
+    }, e=>console.warn('registrations listener:', e.message));
+}
+
+function renderRegistrations(){
+  const q = el('regSearch').value.trim().toLowerCase();
+  const f = el('regFilter').value;
+  const list = allRegistrations.filter(r=>{
+    const mq = !q||[r.name,r.county,r.principal,r.phone].some(v=>(v||'').toLowerCase().includes(q));
+    return mq&&(!f||r.status===f);
+  });
+  if(!list.length){
+    el('regCards').innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:28px;margin-bottom:8px">📝</div>No registrations found</div>';
+    return;
+  }
+  el('regCards').innerHTML = list.map(r=>{
+    const sub = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('en-KE',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    const stCls = r.status==='approved'?'sbadge approved':r.status==='rejected'?'sbadge suspended':'sbadge pending';
+    const isPending = r.status==='pending'||!r.status;
+    return `<div style="background:var(--surface);border:1px solid ${isPending?'#fcd34d':' var(--border)'};border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Familjen Grotesk',sans-serif;font-size:15px;font-weight:800;margin-bottom:6px">${r.name||'Unknown School'}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+            ${r.county?`<span style="font-size:12px;color:var(--text2)">📍 ${r.county}${r.subCounty?' · '+r.subCounty:''}</span>`:''}
+            ${r.principal?`<span style="font-size:12px;color:var(--text2)">👤 ${r.principal}</span>`:''}
+            ${r.phone?`<span style="font-size:12px;color:var(--text2)">📞 ${r.phone}</span>`:''}
+            ${r.email?`<span style="font-size:12px;color:var(--text2)">✉️ ${r.email}</span>`:''}
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--text3)">
+            <span>📊 ${r.streams||'?'} streams</span>
+            <span>👥 ${r.students||'?'} students</span>
+            ${r.source?`<span>📣 via ${r.source}</span>`:''}
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">📅 Submitted: ${sub}</div>
+          ${r.ownerMessage?`<div style="margin-top:8px;padding:8px 10px;background:var(--green-bg);border-radius:5px;font-size:12px;color:var(--green-tx)">✅ Message sent: ${r.ownerMessage.slice(0,60)}…</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="${stCls}">${(r.status||'pending').toUpperCase()}</span>
+          ${isPending?`
+          <button class="act-btn act-approve" onclick="openApproveModal('${r.id}','${(r.name||'').replace(/'/g,"\'")}','${r.phone||''}','${r.email||''}')">✅ Approve & Send Credentials</button>
+          <button class="act-btn act-block" onclick="rejectRegistration('${r.id}')">❌ Reject</button>
+          `:`<button class="act-btn act-view" onclick="openApproveModal('${r.id}','${(r.name||'').replace(/'/g,"\'")}','${r.phone||''}','${r.email||''}')">📩 Resend</button>`}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openApproveModal(id, name, phone, email){
+  _approvingRegId = id;
+  el('arSchoolName').textContent = name;
+  el('arEmail').value = email || '';
+  // Generate a code suggestion from school name
+  const words = name.trim().split(' ');
+  const suggested = (words.map(w=>w[0]||'').join('').toUpperCase().slice(0,3) + '001');
+  el('arCode').value = suggested;
+  // Update message template with suggestions
+  updateApproveMessage();
+  openModal('approveRegModal');
+}
+
+function updateApproveMessage(){
+  const code = el('arCode').value;
+  const email = el('arEmail').value;
+  const pwd = el('arPassword').value;
+  el('arMessage').value = `Your school has been approved!
+
+Here are your login credentials:
+
+School Code: ${code}
+Email: ${email}
+Password: ${pwd}
+
+Visit the CBE Mark Sheet System to login.
+Change your password after first login.
+
+Thank you — CBE Mark Sheet System`;
+}
+el('arCode').addEventListener('input', updateApproveMessage);
+el('arEmail').addEventListener('input', updateApproveMessage);
+el('arPassword').addEventListener('input', updateApproveMessage);
+
+async function sendApproval(){
+  const code = el('arCode').value.trim().toUpperCase();
+  const email = el('arEmail').value.trim();
+  const pwd = el('arPassword').value.trim();
+  const msg = el('arMessage').value.trim();
+  if(!code){toast('School code is required','err');return;}
+  if(!msg){toast('Message is required','err');return;}
+  const r = allRegistrations.find(x=>x.id===_approvingRegId);
+  if(!r)return;
+  try{
+    // Check code uniqueness
+    const existing = await db.collection('schoolCodes').doc(code).get();
+    if(existing.exists){toast('Code '+code+' already in use — choose another','err');return;}
+
+    // Update registration status
+    await db.collection('schoolRegistrations').doc(_approvingRegId).update({
+      status:'approved',
+      schoolCode: code,
+      ownerMessage: msg,
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Create school code entry
+    await db.collection('schoolCodes').doc(code).set({
+      schoolId: '',  // set when admin first logs in
+      schoolName: r.name,
+      adminEmail: email,
+      adminPhone: r.phone||'',
+      code,
+      ownerMessage: msg,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await writeLog('registration_approved','Registration approved: '+r.name+' ('+code+')',r.name,'green');
+
+    // Build WhatsApp message
+    const waMsg = encodeURIComponent(msg);
+    const phone = r.phone ? r.phone.replace(/^0/,'254').replace(/\s/g,'') : '254704518130';
+    const waUrl = `https://wa.me/${phone}?text=${waMsg}`;
+
+    closeModal('approveRegModal');
+    toast('✅ '+r.name+' approved — opening WhatsApp…');
+    setTimeout(()=>window.open(waUrl,'_blank'), 800);
+
+  }catch(e){toast('Failed: '+e.message,'err');}
+}
+
+async function rejectRegistration(id){
+  const r = allRegistrations.find(x=>x.id===id);
+  if(!r||!confirm('Reject registration for '+r.name+'?'))return;
+  await db.collection('schoolRegistrations').doc(id).update({
+    status:'rejected', rejectedAt:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  toast(r.name+' registration rejected');
+}
+
+function updateStats(){
+  el('stSchools').textContent=allPending.length;
+  el('stApproved').textContent=allPending.filter(s=>s.status==='approved').length;
+  el('stPending').textContent=allPending.filter(s=>s.status==='pending'||!s.status).length;
+  el('stBlocked').textContent=allPending.filter(s=>s.status==='suspended').length;
+  el('stAdmins').textContent=allAdmins.length;
+  const flagged=allSessions.filter(s=>s.flagged).length;
+  el('stFlagged').textContent=flagged;
+  el('flaggedDot').style.display=flagged>0?'block':'none';
+  const pend=allPending.filter(s=>s.status==='pending'||!s.status).length;
+  const pb=el('pendingBadge');pb.textContent=pend;pb.style.display=pend>0?'inline':'none';
+}
+
+// SCHOOLS — with real-time listener
+function loadPending(){
+  if(_schoolsUnsub) _schoolsUnsub();
+  el('schoolsTbody').innerHTML = '<tr class="empty-row"><td colspan="9"><div class="empty-icon">⏳</div><div>Loading…</div></td></tr>';
+
+  _schoolsUnsub = db.collection('approvedSchools')
+    .onSnapshot(snap => {
+      const prev = new Set(_prevPendingIds);
+      allPending = [];
+      snap.forEach(d => allPending.push({id:d.id,...d.data()}));
+      // Sort client-side — newest first (detectedAt or updatedAt or fallback)
+      allPending.sort((a,b)=>{
+        const ta = a.detectedAt?.toDate?.()?.getTime() || a.updatedAt?.toDate?.()?.getTime() || 0;
+        const tb = b.detectedAt?.toDate?.()?.getTime() || b.updatedAt?.toDate?.()?.getTime() || 0;
+        return tb - ta;
+      });
+
+      // Detect genuinely new pending requests (not seen before)
+      const newRequests = allPending.filter(s =>
+        (s.status === 'pending' || !s.status) &&
+        !prev.has(s.id)
+      );
+
+      // Update seen set
+      _prevPendingIds = new Set(allPending.map(s=>s.id));
+
+      updateStats();
+      renderSchools();
+      renderRequestsPanel();
+
+      // Show notification toast for new requests (but not on first load)
+      if(prev.size > 0 && newRequests.length > 0){
+        newRequests.forEach(s => showRequestNotification(s));
+      }
+
+      // Refresh detail panel if open
+      if(_selectedSchoolId) openSchoolPanel(_selectedSchoolId);
+
+    }, e => console.warn('schools listener:', e.message));
+}
+
+// ── Render the prominent pending requests panel ──
+function renderRequestsPanel(){
+  const pending = allPending.filter(s => s.status === 'pending' || !s.status);
+  const panel = el('requestsPanel');
+
+  if(!pending.length){
+    panel.style.display = 'none';
+    return;
+  }
+
+  el('requestsCount').textContent = pending.length;
+  panel.style.display = 'block';
+
+  el('requestCards').innerHTML = pending.map(s => {
+    const det = s.detectedAt?.toDate
+      ? s.detectedAt.toDate().toLocaleString('en-KE',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+      : s.updatedAt?.toDate
+        ? s.updatedAt.toDate().toLocaleString('en-KE',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+        : '—';
+    const uid = s.uid || s.id;
+    const nameOk = !!s.schoolName;
+    const cntyOk = !!s.county;
+    const subcOk = !!s.subCounty;
+    const princOk = !!s.principal;
+    return `<div class="req-card new-req" id="reqcard-${s.id}">
+      <div class="req-icon">🏫</div>
+      <div class="req-body">
+        <div class="req-name">${s.schoolName || 'Unknown School'}</div>
+        <div class="req-time">📅 Requested: ${det}</div>
+
+        <div style="margin:10px 0;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div style="display:flex;align-items:flex-start;gap:6px;background:${nameOk?'var(--green-bg)':'var(--red-bg)'};border:1px solid ${nameOk?'#a7f3d0':'#fca5a5'};border-radius:5px;padding:7px 10px">
+            <span style="font-size:13px;flex-shrink:0">${nameOk?'✅':'❌'}</span>
+            <div><div style="font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">School Name</div>
+            <div style="font-size:12.5px;font-weight:700;color:var(--text)">${s.schoolName||'—'}</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:6px;background:${cntyOk?'var(--green-bg)':'var(--red-bg)'};border:1px solid ${cntyOk?'#a7f3d0':'#fca5a5'};border-radius:5px;padding:7px 10px">
+            <span style="font-size:13px;flex-shrink:0">${cntyOk?'✅':'❌'}</span>
+            <div><div style="font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">County</div>
+            <div style="font-size:12.5px;font-weight:700;color:var(--text)">${s.county||'Not set'}</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:6px;background:${subcOk?'var(--green-bg)':'var(--amber-bg)'};border:1px solid ${subcOk?'#a7f3d0':'#fcd34d'};border-radius:5px;padding:7px 10px">
+            <span style="font-size:13px;flex-shrink:0">${subcOk?'✅':'⚠️'}</span>
+            <div><div style="font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Sub-County</div>
+            <div style="font-size:12.5px;font-weight:700;color:var(--text)">${s.subCounty||'Not set'}</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:6px;background:${princOk?'var(--green-bg)':'var(--amber-bg)'};border:1px solid ${princOk?'#a7f3d0':'#fcd34d'};border-radius:5px;padding:7px 10px">
+            <span style="font-size:13px;flex-shrink:0">${princOk?'✅':'⚠️'}</span>
+            <div><div style="font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Principal</div>
+            <div style="font-size:12.5px;font-weight:700;color:var(--text)">${s.principal||'Not set'}</div></div>
+          </div>
+        </div>
+
+        <div style="background:var(--surf2);border:1px solid var(--border);border-radius:5px;padding:6px 10px;margin-bottom:10px;font-size:11px;color:var(--text3);word-break:break-all">
+          🔑 ID: <span style="font-family:monospace;color:var(--text2)">${uid}</span>
+        </div>
+
+        <div class="req-actions">
+          <button class="req-approve-btn" onclick="approveRequest('${s.id}','${(s.schoolName||'').replace(/'/g,"\'")}')">
+            ✅ Approve & Activate
+          </button>
+          <button class="req-msg-btn" onclick="openMsgModal('${s.id}')">
+            📩 Request Payment
+          </button>
+          <button class="req-reject-btn" onclick="setPendingStatus('${s.id}','suspended')">
+            🔒 Block
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── One-click approve from request card ──
+async function approveRequest(id, schoolName){
+  const btn = document.querySelector(`#reqcard-${id} .req-approve-btn`);
+  if(btn){ btn.disabled=true; btn.textContent='Approving…'; }
+  try{
+    await db.collection('approvedSchools').doc(id).update({
+      status: 'approved',
+      message: '', contact: null, footer: null,
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await writeLog('school_approved', 'School approved: '+schoolName, schoolName, 'green');
+    toast('✅ ' + schoolName + ' approved — their dashboard is now unlocked');
+  }catch(e){
+    toast('Failed: '+e.message, 'err');
+    if(btn){ btn.disabled=false; btn.textContent='✅ Approve & Activate'; }
+  }
+}
+
+// ── Show notification toast when a new school registers ──
+function showRequestNotification(s){
+  // Remove existing notif if any
+  document.querySelectorAll('.notif-toast').forEach(n=>n.remove());
+
+  const n = document.createElement('div');
+  n.className = 'notif-toast';
+  n.innerHTML = `
+    <div class="notif-toast-head">🔔 New School Registration</div>
+    <div class="notif-toast-body">
+      <strong>${s.schoolName||'Unknown School'}</strong>${s.county?' · '+s.county:''}<br>
+      Is waiting for approval
+    </div>
+    <div class="notif-toast-action">Click to view →</div>`;
+  n.onclick = ()=>{
+    switchTab('schools', document.querySelectorAll('.nav-tab')[1]);
+    n.remove();
+    el('requestsPanel').scrollIntoView({behavior:'smooth'});
+  };
+  document.body.appendChild(n);
+  setTimeout(()=>{ n.style.animation='notifIn .25s ease reverse forwards'; setTimeout(()=>n.remove(), 280); }, 8000);
+}
+
+function renderSchools(){
+  const q = el('schoolSearch').value.trim().toLowerCase();
+  const f = el('schoolFilter').value;
+  const list = allPending.filter(s=>{
+    const mq = !q||[s.schoolName,s.county,s.uid,s.id].some(v=>(v||'').toLowerCase().includes(q));
+    return mq && (!f||s.status===f||(!s.status&&f==='pending'));
+  });
+
+  // Count live schools
+  const liveIds = new Set(allSessions.filter(s=>s.active).map(s=>s.adminId));
+  const liveSchools = allPending.filter(s=>liveIds.has(s.uid||s.id)).length;
+  const liveLabel = el('liveSchoolsLabel');
+  if(liveSchools > 0){
+    el('liveCount').textContent = liveSchools;
+    liveLabel.style.display = 'inline-flex';
+  } else {
+    liveLabel.style.display = 'none';
+  }
+  el('schoolsCountLabel').textContent = `(${list.length} of ${allPending.length})`;
+
+  if(!list.length){
+    el('schoolsTbody').innerHTML = `<tr class="empty-row"><td colspan="9"><div class="empty-icon">🏫</div><div>No schools found</div></td></tr>`;
+    return;
+  }
+
+  el('schoolsTbody').innerHTML = list.map((s,i) => {
+    const det = s.detectedAt?.toDate ? s.detectedAt.toDate().toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    const st = s.status || 'pending';
+    const uid = s.uid || s.id;
+    const isLive = liveIds.has(uid);
+    const sessCount = allSessions.filter(x => x.adminId === uid).length;
+    const hasmsg = s.message && s.message.trim();
+    const rowCls = st==='approved'?'row-active':st==='suspended'?'row-blocked':'';
+    return `<tr class="${rowCls}" style="cursor:pointer" onclick="openSchoolPanel('${s.id}')">
+      <td style="color:var(--text3);font-weight:600">${i+1}</td>
+      <td>
+        <div class="t-name">${s.schoolName||'Unknown School'}</div>
+        <div class="t-sub">${s.county||'—'}</div>
+      </td>
+      <td style="font-size:12px;color:var(--text2)">${s.county||'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${det}</td>
+      <td class="tc">
+        ${isLive
+          ? '<span class="live-label"><span class="live-dot"></span>Online</span>'
+          : '<span style="color:var(--text3);font-size:11px">offline</span>'}
+      </td>
+      <td class="tc" style="font-weight:700;color:${sessCount>0?'var(--accent)':'var(--text3)'}">${sessCount}</td>
+      <td class="tc"><span class="sbadge ${st}">${st.toUpperCase()}</span></td>
+      <td class="tc">
+        ${hasmsg
+          ? `<span class="msg-preview" title="${s.message}">✉️ ${s.message.slice(0,30)}${s.message.length>30?'…':''}</span>`
+          : '<span style="color:var(--text3);font-size:11px">—</span>'}
+      </td>
+      <td onclick="event.stopPropagation()"><div class="act-wrap">
+        ${st!=='approved'
+          ? `<button class="act-btn act-approve" onclick="quickApprove('${s.id}')">✅ Approve</button>`
+          : `<button class="act-btn act-block" onclick="setPendingStatus('${s.id}','suspended')">🚫 Revoke</button>`}
+        <button class="act-btn act-msg" onclick="openMsgModal('${s.id}')">📩</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// Quick approve without confirm dialog
+async function quickApprove(id){
+  const s = allPending.find(x=>x.id===id);if(!s)return;
+  try{
+    await db.collection('approvedSchools').doc(id).update({
+      status:'approved',
+      message:'', contact:null, footer:null,
+      approvedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await writeLog('school_approved','School approved: '+s.schoolName,s.schoolName,'green');
+    toast(`✅ ${s.schoolName} approved — dashboard unblocked`);
+  }catch(e){toast('Failed: '+e.message,'err');}
+}
+
+// Open school detail panel
+function openSchoolPanel(id){
+  const s = allPending.find(x=>x.id===id);if(!s)return;
+  _selectedSchoolId = id;
+  const uid = s.uid||s.id;
+  const sessions = allSessions.filter(x=>x.adminId===uid);
+  const active = sessions.filter(x=>x.active);
+  const isLive = active.length > 0;
+  const lastSession = sessions.sort((a,b)=>(b.loginAt?.toDate?.()?.getTime()||0)-(a.loginAt?.toDate?.()?.getTime()||0))[0];
+  const det = s.detectedAt?.toDate ? s.detectedAt.toDate().toLocaleString('en-KE') : '—';
+
+  el('spName').textContent = s.schoolName||'Unknown School';
+  el('spLiveLabel').innerHTML = isLive
+    ? '<span class="live-label" style="margin-left:8px"><span class="live-dot"></span>Online now</span>'
+    : '';
+  el('spCounty').textContent = s.county||'—';
+  el('spUid').textContent = uid;
+  el('spDetected').textContent = det;
+  el('spLogins').textContent = sessions.length + ' total';
+  el('spLastLogin').textContent = lastSession?.loginAt?.toDate ? 'Last: '+timeAgo(lastSession.loginAt.toDate()) : 'Never logged in';
+  el('spActiveSess').textContent = active.length + ' active';
+  el('spStatus').innerHTML = `<span class="sbadge ${s.status||'pending'}">${(s.status||'pending').toUpperCase()}</span>`;
+
+  // Show/hide message preview
+  const msgBox = el('spMsgPreview');
+  if(s.message && s.message.trim()){
+    el('spMsgText').textContent = s.message;
+    msgBox.style.display = 'block';
+  } else {
+    msgBox.style.display = 'none';
+  }
+
+  // Update action buttons
+  const st = s.status||'pending';
+  el('spApproveBtn').style.display = st!=='approved'?'inline-flex':'none';
+  el('spBlockBtn').style.display   = st!=='suspended'?'inline-flex':'none';
+
+  el('schoolPanel').style.display = 'block';
+  el('schoolPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function closeSchoolPanel(){
+  el('schoolPanel').style.display = 'none';
+  _selectedSchoolId = null;
+}
+
+// Jump to sessions for this school
+function viewSchoolSessions(id){
+  const s = allPending.find(x=>x.id===id);if(!s)return;
+  switchTab('sessions', document.querySelectorAll('.nav-tab')[3]);
+  el('sessSearch').value = s.schoolName||'';
+  renderSessions();
+}
+
+function openMsgModal(id){
+  const s=allPending.find(x=>x.id===id);if(!s)return;
+  editingPendingId=id;
+  el('msgSchoolName').textContent=s.schoolName||'Unknown';
+  el('msgText').value=s.message||'';
+  el('msgContact').value=s.contact||'';
+  el('msgFooter').value=s.footer||'';
+  openModal('msgModal');
+}
+
+// Message templates
+function setMsgTemplate(type){
+  const t1 = 'Dear School Administrator,\n\nTo activate your CBE Mark Sheet System, please pay Ksh 5,000 via M-Pesa to 0712345678 (CBE Systems) and send the confirmation number to the same number via WhatsApp.\n\nYour account will be activated within 24 hours of payment confirmation.\n\nThank you.';
+  const t2 = 'Dear School Administrator,\n\nYour CBE Mark Sheet System licence has expired. To continue using the system, please renew by paying Ksh 5,000 via M-Pesa to 0712345678.\n\nSend the M-Pesa confirmation to 0712345678 on WhatsApp to restore access.';
+  const t3 = 'Dear School Administrator,\n\nYour system licence is due for renewal. Please make payment of Ksh 5,000 via M-Pesa to 0712345678 to continue uninterrupted access to the CBE Mark Sheet System.';
+  const templates={payment:t1,expired:t2,renew:t3};
+  el('msgText').value = templates[type]||'';
+  el('msgText').focus();
+}
+
+async function clearMessage(){
+  if(!editingPendingId)return;
+  const s=allPending.find(x=>x.id===editingPendingId);
+  if(!confirm('Clear the message? This will remove the block from their dashboard.'))return;
+  try{
+    await db.collection('approvedSchools').doc(editingPendingId).update({
+      message:'', contact:null, footer:null,
+      messageCleared:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await writeLog('message_cleared','Message cleared for: '+(s?.schoolName||editingPendingId),s?.schoolName,'blue');
+    toast('Message cleared — their dashboard is now accessible');
+    closeModal('msgModal');editingPendingId=null;
+  }catch(e){toast('Failed: '+e.message,'err');}
+}
+
+async function sendMessage(){
+  if(!editingPendingId)return;
+  const msg=el('msgText').value.trim(),contact=el('msgContact').value.trim(),footer=el('msgFooter').value.trim();
+  if(!msg){toast('Write a message first','err');return;}
+  try{
+    const s=allPending.find(x=>x.id===editingPendingId);
+    await db.collection('approvedSchools').doc(editingPendingId).set({
+      message:msg,contact:contact||null,footer:footer||null,
+      status:'pending',schoolName:s?.schoolName||editingPendingId,
+      messageSentAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    if(s){s.message=msg;s.contact=contact;s.footer=footer;s.status='pending';}
+    await writeLog('message_sent','Payment message sent to: '+(s?.schoolName||editingPendingId),s?.schoolName,'amber');
+    toast('✅ Message sent — their dashboard is now blocked');
+    closeModal('msgModal');editingPendingId=null;
+  }catch(e){toast('Failed: '+e.message,'err');}
+}
+
+async function setPendingStatus(id,status){
+  const s=allPending.find(x=>x.id===id);if(!s)return;
+  el('confTitle').textContent=status==='approved'?'Approve School':'Block School';
+  el('confIcon').textContent=status==='approved'?'✅':'🔒';
+  el('confMsg').innerHTML=status==='approved'
+    ?`Approve <strong>${s.schoolName}</strong>?<br><small style="color:var(--green-tx)">Their dashboard will unblock immediately.</small>`
+    :`Block <strong>${s.schoolName}</strong>?<br><small style="color:var(--red-tx)">Their dashboard will be paralysed immediately.</small>`;
+  el('confBtn').textContent=status==='approved'?'✅ Approve':'🔒 Block';
+  el('confBtn').className=`btn ${status==='approved'?'btn-success':'btn-danger'}`;
+  el('confBtn').onclick=async()=>{
+    const upd={status,[status==='approved'?'approvedAt':'suspendedAt']:firebase.firestore.FieldValue.serverTimestamp()};
+    if(status==='approved'){upd.message='';upd.contact=null;upd.footer=null;}
+    await db.collection('approvedSchools').doc(id).update(upd);
+    s.status=status;if(status==='approved'){s.message='';s.contact=null;}
+    await writeLog(status==='approved'?'school_approved':'school_blocked',
+      `School ${status}: ${s.schoolName}`,s.schoolName,status==='approved'?'green':'red');
+    closeModal('confirmModal');
+    if(_selectedSchoolId===id) openSchoolPanel(id);
+    toast(`${s.schoolName} ${status==='approved'?'✅ approved — dashboard unblocked':'🔒 blocked'}`);
+  };
+  openModal('confirmModal');
+}
+
+// ADMINS
+async function loadAdmins(){
+  try{const snap=await db.collection('user').where('role','in',['admin','secretary']).get();allAdmins=[];snap.forEach(d=>allAdmins.push({id:d.id,...d.data()}));updateStats();renderAdmins();renderRecentSessions();}
+  catch(e){toast('Failed to load admins: '+e.message,'err');}
+}
+function renderAdmins(){
+  const q=el('adminSearch').value.trim().toLowerCase();
+  const fs=el('adminFilterStatus').value;
+  const list=allAdmins.filter(a=>{const mq=!q||[a.fullName,a.school,a.email,a.county].some(v=>(v||'').toLowerCase().includes(q));const ms=!fs||(fs==='suspended'?a.status==='suspended':a.licenceStatus===fs||(fs==='trial'&&!a.licenceStatus));return mq&&ms;});
+  if(!list.length){el('adminsTbody').innerHTML=`<tr class="empty-row"><td colspan="8"><div class="empty-icon">👥</div><div>No admins found</div></td></tr>`;return;}
+  el('adminsTbody').innerHTML=list.map((a,i)=>{
+    const last=a.lastLogin?.toDate?timeAgo(a.lastLogin.toDate()):'Never';
+    const hasFlagged=allSessions.some(s=>s.adminId===a.id&&s.flagged);
+    const st=a.status==='suspended'?'suspended':a.licenceStatus||'trial';
+    return `<tr>
+      <td style="color:var(--text3);font-weight:600">${i+1}</td>
+      <td><div class="t-name">${a.fullName||'—'}${hasFlagged?' <span style="color:var(--red)">⚠️</span>':''}</div><div class="t-sub">${a.email||''}</div>${a.schoolCode?`<div style="font-size:10px;font-family:monospace;color:var(--accent);font-weight:700;margin-top:2px">🔑 ${a.schoolCode}</div>`:''}</td>
+      <td>${a.school||'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${a.county||'—'}</td>
+      <td style="font-size:11.5px;color:var(--text2)">${a.licenceType||'trial'}</td>
+      <td class="tc"><span class="sbadge ${st}">${st.toUpperCase()}</span></td>
+      <td style="font-size:12px;color:var(--text2)">${last}</td>
+      <td><div class="act-wrap">
+        <button class="act-btn act-edit" onclick="openEditAdmin('${a.id}')">✏️ Edit</button>
+        ${a.status==='suspended'?`<button class="act-btn act-restore" onclick="setAdminStatus('${a.id}','active')">✅ Restore</button>`:`<button class="act-btn act-block" onclick="setAdminStatus('${a.id}','suspended')">🚫 Suspend</button>`}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+async function saveAdmin(){
+  const name=el('aaName').value.trim(),school=el('aaSchool').value.trim(),email=el('aaEmail').value.trim();
+  const code=el('aaCode').value.trim().toUpperCase();
+  if(!name||!school||!email){toast('Name, school and email required','err');return;}
+  if(!code){toast('School code is required','err');return;}
+  try{
+    // Check code is not already used
+    const codeSnap = await db.collection('schoolCodes').doc(code).get();
+    if(codeSnap.exists){toast('School code '+code+' already exists — use a different code','err');return;}
+
+    // Create admin user doc
+    const ref = await db.collection('user').add({
+      fullName:name,school,email,
+      phone:el('aaPhone').value.trim(),
+      county:el('aaCounty').value.trim(),
+      licenceType:el('aaLicence').value,
+      licenceStatus:'trial',
+      licenceExpiry:el('aaExpiry').value||null,
+      notes:el('aaNotes').value.trim(),
+      role:'admin',status:'active',
+      schoolCode:code,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Write school code — adminEmail is the verification key
+    // schoolId (Firebase Auth uid) is updated when admin first logs in
+    await db.collection('schoolCodes').doc(code).set({
+      schoolId:  ref.id,  // Firestore doc id — updated to Auth uid on first login
+      schoolName:school,
+      adminEmail:email,   // used to verify code ownership at login
+      adminName: name,
+      code,
+      firestoreDocId: ref.id,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await writeLog('admin_added','Admin registered: '+name+' ('+code+')',school,'green');
+    toast('✅ '+name+' registered with code: '+code);
+    closeModal('addAdminModal');loadAdmins();
+    ['aaName','aaSchool','aaEmail','aaCode','aaPhone','aaCounty','aaExpiry','aaNotes'].forEach(id=>el(id).value='');
+  }catch(e){toast('Failed: '+e.message,'err');}
+}
+function openEditAdmin(id){const a=allAdmins.find(x=>x.id===id);if(!a)return;editingAdminId=id;el('eaName').value=a.fullName||'';el('eaSchool').value=a.school||'';el('eaEmail').value=a.email||'';el('eaPhone').value=a.phone||'';el('eaCounty').value=a.county||'';el('eaLicence').value=a.licenceType||'trial';el('eaExpiry').value=a.licenceExpiry||'';el('eaStatus').value=a.status||'active';el('eaMaxLogins').value=a.maxLogins||3;el('eaNotes').value=a.notes||'';openModal('editAdminModal');}
+async function saveEditAdmin(){if(!editingAdminId)return;const name=el('eaName').value.trim();if(!name){toast('Name required','err');return;}try{const upd={fullName:name,school:el('eaSchool').value.trim(),email:el('eaEmail').value.trim(),phone:el('eaPhone').value.trim(),county:el('eaCounty').value.trim(),licenceType:el('eaLicence').value,licenceExpiry:el('eaExpiry').value||null,status:el('eaStatus').value,maxLogins:Number(el('eaMaxLogins').value)||3,notes:el('eaNotes').value.trim(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};await db.collection('user').doc(editingAdminId).update(upd);const a=allAdmins.find(x=>x.id===editingAdminId);Object.assign(a,upd);await writeLog('admin_updated','Admin updated: '+name,upd.school,'blue');updateStats();renderAdmins();closeModal('editAdminModal');toast(name+' updated');editingAdminId=null;}catch(e){toast('Failed: '+e.message,'err');}}
+async function setAdminStatus(id,status){const a=allAdmins.find(x=>x.id===id);if(!a)return;el('confTitle').textContent=status==='suspended'?'Suspend Admin':'Restore Admin';el('confIcon').textContent=status==='suspended'?'🚫':'✅';el('confMsg').innerHTML=`${status==='suspended'?'Suspend':'Restore'} <strong>${a.fullName}</strong> (${a.school})?`;el('confBtn').textContent=status==='suspended'?'Suspend':'Restore';el('confBtn').className=`btn ${status==='suspended'?'btn-danger':'btn-success'}`;el('confBtn').onclick=async()=>{await db.collection('user').doc(id).update({status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});a.status=status;await writeLog(status==='suspended'?'admin_suspended':'admin_restored',`Admin ${status}: ${a.fullName}`,a.school,status==='suspended'?'red':'green');updateStats();renderAdmins();closeModal('confirmModal');toast(`${a.fullName} ${status==='suspended'?'suspended':'restored'}`);};openModal('confirmModal');}
+
+// SESSIONS
+async function loadSessions(){try{const snap=await db.collection('adminSessions').orderBy('loginAt','desc').limit(200).get();allSessions=[];snap.forEach(d=>allSessions.push({id:d.id,...d.data()}));detectSuspiciousActivity();updateStats();renderSessions();renderRecentSessions();updateAlertBadge();}catch(e){}}
+function renderSessions(){
+  const q=el('sessSearch').value.trim().toLowerCase();const f=el('sessFilter').value;
+  let list=[...allSessions];
+  if(q)list=list.filter(s=>[s.adminEmail,s.adminName,s.school,s.ip,s.device].some(v=>(v||'').toLowerCase().includes(q)));
+  if(f==='flagged')list=list.filter(s=>s.flagged);if(f==='active')list=list.filter(s=>s.active);
+  if(!list.length){el('sessionsTbody').innerHTML=`<tr class="empty-row"><td colspan="7"><div class="empty-icon">🔐</div><div>No sessions</div></td></tr>`;return;}
+  el('sessionsTbody').innerHTML=list.map(s=>{const time=s.loginAt?.toDate?s.loginAt.toDate().toLocaleString('en-KE'):'—';const dur=s.loginAt?.toDate?timeDiff(s.loginAt.toDate(),s.logoutAt?.toDate?s.logoutAt.toDate():new Date()):'—';return `<tr class="${s.flagged?'row-flagged':''}"><td><div class="t-name">${s.adminName||s.adminEmail||'Unknown'}</div><div class="t-sub">${s.school||'—'}</div></td><td style="font-size:12px;color:var(--text2)">${s.device||'—'}</td><td class="tc t-mono">${s.ip||'—'}</td><td style="font-size:12px">${time}</td><td class="t-mono" style="font-size:11.5px">${dur}</td><td class="tc">${s.flagged?'<span class="sbadge flagged">⚠️ FLAGGED</span>':s.active?'<span class="sbadge active">ACTIVE</span>':'<span style="color:var(--text3);font-size:11px">ended</span>'}</td><td><div class="act-wrap"><button class="act-btn act-view" onclick="viewSession('${s.id}')">🔍 View</button>${s.active?`<button class="act-btn act-revoke" onclick="revokeSession('${s.id}')">🚫 Revoke</button>`:''}</div></td></tr>`;}).join('');
+}
+function renderRecentSessions(){const recent=allSessions.filter(s=>s.loginAt?.toDate&&(Date.now()-s.loginAt.toDate())<86400000).slice(0,10);if(!recent.length){el('recentTbody').innerHTML=`<tr class="empty-row"><td colspan="7"><div class="empty-icon">💤</div><div>No logins in last 24h</div></td></tr>`;return;}el('recentTbody').innerHTML=recent.map(s=>{const time=s.loginAt?.toDate?timeAgo(s.loginAt.toDate()):'—';return `<tr class="${s.flagged?'row-flagged':''}"><td><div class="t-name">${s.adminName||'Unknown'}</div><div class="t-sub">${s.school||'—'}</div></td><td class="t-mono" style="font-size:11.5px">${s.adminEmail||'—'}</td><td style="font-size:12px;color:var(--text2)">${s.device||'—'}</td><td class="tc t-mono">${s.ip||'—'}</td><td style="font-size:12px">${time}</td><td class="tc">${s.flagged?'<span class="sbadge flagged">⚠️</span>':s.active?'<span class="sbadge active">ACTIVE</span>':'<span style="color:var(--text3);font-size:11px">ended</span>'}</td><td class="tc"><button class="act-btn act-view" onclick="viewSession('${s.id}')">🔍</button></td></tr>`;}).join('');}
+function viewSession(id){const s=allSessions.find(x=>x.id===id);if(!s)return;const loginTime=s.loginAt?.toDate?s.loginAt.toDate().toLocaleString('en-KE'):'—';const logoutTime=s.logoutAt?.toDate?s.logoutAt.toDate().toLocaleString('en-KE'):'Still active';el('sessionModalBody').innerHTML=`<div class="sdetail-grid"><div class="sdetail-box"><div class="sdb-lbl">Admin Name</div><div class="sdb-val">${s.adminName||'—'}</div></div><div class="sdetail-box"><div class="sdb-lbl">Email</div><div class="sdb-val">${s.adminEmail||'—'}</div></div><div class="sdetail-box"><div class="sdb-lbl">School</div><div class="sdb-val">${s.school||'—'}</div></div><div class="sdetail-box"><div class="sdb-lbl">IP Address</div><div class="sdb-val">${s.ip||'—'}</div></div><div class="sdetail-box"><div class="sdb-lbl">Device</div><div class="sdb-val">${s.device||'—'}</div></div><div class="sdetail-box"><div class="sdb-lbl">OS</div><div class="sdb-val">${s.os||'—'}</div></div><div class="sdetail-box"><div class="sdb-lbl">Login Time</div><div class="sdb-val">${loginTime}</div></div><div class="sdetail-box"><div class="sdb-lbl">Status</div><div class="sdb-val" style="color:${s.active?'var(--green)':'var(--text2)'}">${logoutTime}</div></div></div>${s.flagged?`<div style="margin-top:12px;padding:10px 12px;background:var(--red-bg);border:1px solid #fca5a5;border-radius:var(--r2);font-size:12px;color:var(--red-tx)">⚠️ <strong>Flagged:</strong> ${s.flagReason||'Suspicious activity detected'}</div>`:''}`;el('revokeSessionBtn').style.display=s.active?'inline-flex':'none';el('revokeSessionBtn').onclick=()=>revokeSession(id);openModal('sessionModal');}
+async function revokeSession(id){try{await db.collection('adminSessions').doc(id).update({active:false,revokedAt:firebase.firestore.FieldValue.serverTimestamp(),revokedBy:'owner'});const s=allSessions.find(x=>x.id===id);if(s)s.active=false;await writeLog('revoked','Session revoked: '+(s?.adminEmail||id),s?.school,'red');toast('Session revoked');closeModal('sessionModal');renderSessions();renderRecentSessions();}catch(e){toast('Failed: '+e.message,'err');}}
+function confirmRevokeAll(){const flagged=allSessions.filter(s=>s.flagged&&s.active);if(!flagged.length){toast('No flagged active sessions','info');return;}el('confTitle').textContent='Revoke All Flagged';el('confIcon').textContent='🚫';el('confMsg').innerHTML=`Revoke <strong>${flagged.length}</strong> flagged active session${flagged.length>1?'s':''}?`;el('confBtn').textContent='Revoke All';el('confBtn').className='btn btn-danger';el('confBtn').onclick=async()=>{for(const s of flagged)await revokeSession(s.id).catch(()=>{});closeModal('confirmModal');};openModal('confirmModal');}
+
+// ALERTS
+function detectSuspiciousActivity(){const alerts=[];const byAdmin={};allSessions.forEach(s=>{if(!byAdmin[s.adminId])byAdmin[s.adminId]={sessions:[]};byAdmin[s.adminId].sessions.push(s);});Object.keys(byAdmin).forEach(adminId=>{const {sessions}=byAdmin[adminId];const admin=allAdmins.find(a=>a.id===adminId)||{};const recent=sessions.filter(s=>s.loginAt?.toDate&&(Date.now()-s.loginAt.toDate())<86400000);const recentIPs=new Set(recent.map(s=>s.ip).filter(Boolean));if(recentIPs.size>3)alerts.push({severity:'red',title:'Multiple IPs detected',desc:`${admin.fullName||adminId} (${admin.school||'Unknown'}) logged in from ${recentIPs.size} IPs in 24h — possible credential sharing.`,time:new Date()});const activeSess=sessions.filter(s=>s.active);if(activeSess.length>5)alerts.push({severity:'amber',title:'Too many active sessions',desc:`${admin.fullName||adminId} has ${activeSess.length} simultaneous active sessions.`,time:new Date()});const oddHours=recent.filter(s=>{if(!s.loginAt?.toDate)return false;const h=s.loginAt.toDate().getHours();return h<6||h>=23;});if(oddHours.length>0)alerts.push({severity:'amber',title:'Login outside business hours',desc:`${admin.fullName||adminId} (${admin.school||'Unknown'}) had ${oddHours.length} login${oddHours.length>1?'s':''} between 11pm–6am.`,time:new Date()});});allAlerts=alerts;renderAlerts();updateAlertBadge();}
+function renderAlerts(){if(!allAlerts.length){el('alertsContainer').innerHTML=`<div class="alert-card ac-green"><div class="ac-icon">✅</div><div class="ac-body"><div class="ac-title">No suspicious activity detected</div><div class="ac-desc">All admin logins appear normal.</div></div></div>`;return;}el('alertsContainer').innerHTML=allAlerts.map((a,i)=>`<div class="alert-card ac-${a.severity}"><div class="ac-icon">${a.severity==='red'?'🚨':'⚠️'}</div><div class="ac-body"><div class="ac-title">${a.title}</div><div class="ac-desc">${a.desc}</div><div class="ac-time">${a.time.toLocaleString('en-KE')}</div></div><button class="ac-dismiss" onclick="dismissAlert(${i})">Dismiss</button></div>`).join('');}
+function dismissAlert(i){allAlerts.splice(i,1);renderAlerts();updateAlertBadge();}
+function updateAlertBadge(){const b=el('alertBadge');if(allAlerts.length>0){b.textContent=allAlerts.length;b.style.display='inline';}else b.style.display='none';}
+function loadAlerts(){detectSuspiciousActivity();}
+
+// LOG
+async function loadActivityLog(){try{const snap=await db.collection('ownerLog').orderBy('createdAt','desc').limit(100).get();allLog=[];snap.forEach(d=>allLog.push({id:d.id,...d.data()}));renderLog();}catch(e){}}
+function renderLog(){const q=el('logSearch').value.trim().toLowerCase();const f=el('logFilter').value;let list=[...allLog];if(q)list=list.filter(l=>(l.message||'').toLowerCase().includes(q)||(l.school||'').toLowerCase().includes(q));if(f)list=list.filter(l=>l.type===f);if(!list.length){el('logTbody').innerHTML=`<tr class="empty-row"><td colspan="4"><div class="empty-icon">📋</div><div>No log entries</div></td></tr>`;return;}const icons={login:'🔓',logout:'🔒',revoked:'🚫',admin_added:'➕',admin_updated:'✏️',admin_suspended:'🚫',admin_restored:'✅',message_sent:'📩',school_approved:'✅',school_blocked:'🔒',school_setup:'🏫'};el('logTbody').innerHTML=list.map(l=>{const time=l.createdAt?.toDate?l.createdAt.toDate().toLocaleString('en-KE'):'—';const icon=icons[l.type]||'📋';return `<tr><td><span style="font-size:14px">${icon}</span> <span style="font-size:11.5px;color:var(--text3);text-transform:uppercase">${(l.type||'').replace(/_/g,' ')}</span></td><td><div style="font-size:12.5px;font-weight:600">${l.adminName||'—'}</div><div class="t-sub">${l.school||'—'}</div></td><td style="font-size:12px;color:var(--text2)">${l.message||'—'}</td><td style="font-family:monospace;font-size:11px;color:var(--text3)">${time}</td></tr>`;}).join('');}
+async function writeLog(type,message,school,color='blue'){try{const u=auth.currentUser;await db.collection('ownerLog').add({type,message,school:school||null,color,adminName:u?.displayName||u?.email||'owner',createdAt:firebase.firestore.FieldValue.serverTimestamp()});loadActivityLog();}catch(_){}}
+
+function timeAgo(d){const s=Math.floor((Date.now()-d)/1000);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
+function timeDiff(start,end){const s=Math.floor((end-start)/1000);if(s<60)return s+'s';if(s<3600)return Math.floor(s/60)+'m '+Math.floor(s%60)+'s';return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';}
+</script>
+</body>
+</html>
