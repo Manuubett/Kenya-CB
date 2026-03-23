@@ -204,31 +204,50 @@ textarea.minp{height:auto;padding:8px 10px;resize:vertical;min-height:80px}
 @keyframes tin{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes tout{to{transform:translateX(110%);opacity:0}}
 </style>
-<!-- OneSignal — receives push notifications for new registrations -->
+<!-- OneSignal — push notifications -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "141d7cd0-8727-4066-a62c-8e0da7f85762",
-      notifyButton: {
-        enable: true,
-        size: 'medium',
-        position: 'bottom-right',
-        text: {
-          'tip.state.unsubscribed': 'Enable notifications for new registrations',
-          'tip.state.subscribed': 'Notifications enabled',
-          'message.prenotify': 'Click to enable push notifications',
-          'message.action.subscribed': 'Notifications enabled!',
-        }
-      },
+      notifyButton: { enable: false },  // we use our own button
       allowLocalhostAsSecureOrigin: true,
     });
-    // Auto-subscribe owner when they log in
+    // Update button state after init
+    updateNotifBtn();
     OneSignal.on('subscriptionChange', function(isSubscribed) {
-      console.log('OneSignal subscription:', isSubscribed);
+      updateNotifBtn();
     });
   });
+
+  function updateNotifBtn(){
+    var btn = document.getElementById('notifBtn');
+    if(!btn) return;
+    try{
+      window.OneSignal.isPushNotificationsEnabled(function(enabled){
+        btn.textContent = enabled ? '🔔 Notifications ON' : '🔕 Enable Notifications';
+        btn.style.borderColor = enabled ? 'rgba(52,211,153,.4)' : '';
+        btn.style.color = enabled ? '#34d399' : '';
+      });
+    }catch(e){}
+  }
+
+  function toggleNotifications(){
+    try{
+      window.OneSignal.isPushNotificationsEnabled(function(enabled){
+        if(enabled){
+          window.OneSignal.setSubscription(false);
+          document.getElementById('notifBtn').textContent = '🔕 Enable Notifications';
+          document.getElementById('notifBtn').style.color = '';
+          document.getElementById('notifBtn').style.borderColor = '';
+        } else {
+          window.OneSignal.registerForPushNotifications();
+          setTimeout(updateNotifBtn, 2000);
+        }
+      });
+    }catch(e){ alert('Please allow notifications in your browser settings'); }
+  }
 </script>
 </head>
 <body>
@@ -399,6 +418,7 @@ Thank you — CBE Mark Sheet System</textarea>
       <span class="owner-badge">👑 OWNER</span>
       <span id="ownerName" style="font-size:11.5px;color:var(--text2);font-weight:600"></span>
       <span id="dateDisplay" style="font-size:11.5px;color:var(--text3)"></span>
+      <button class="btn btn-outline btn-sm" id="notifBtn" onclick="toggleNotifications()" style="font-size:11.5px">🔕 Enable Notifications</button>
       <button class="btn btn-outline btn-sm" onclick="loadAll()">🔄 Refresh</button>
       <button class="btn btn-outline btn-sm" style="color:#ef4444;border-color:rgba(239,68,68,.3)" onclick="doLogout()">🚪 Sign Out</button>
     </div>
@@ -866,9 +886,16 @@ function loadPending(){
       renderSchools();
       renderRequestsPanel();
 
-      // Show notification toast for new requests (but not on first load)
+      // Show notification toast + push for new requests (not on first load)
       if(prev.size > 0 && newRequests.length > 0){
-        newRequests.forEach(s => showRequestNotification(s));
+        newRequests.forEach(s => {
+          showRequestNotification(s);
+          sendPushNotification(
+            '🏫 New School Registration',
+            (s.schoolName||'A school') + ' (' + (s.county||'') + ') is awaiting approval.',
+            window.location.href
+          );
+        });
       }
 
       // Refresh detail panel if open
@@ -966,6 +993,40 @@ async function approveRequest(id, schoolName){
     toast('Failed: '+e.message, 'err');
     if(btn){ btn.disabled=false; btn.textContent='✅ Approve & Activate'; }
   }
+}
+
+// ── Send OneSignal push notification ──
+function sendPushNotification(title, message, url){
+  var REST_KEY = 'REPLACE_WITH_YOUR_ONESIGNAL_REST_API_KEY';
+  if(REST_KEY.includes('141d7cd0-8727-4066-a62c-8e0da7f85762')) {
+    console.warn('OneSignal REST API Key not set — push not sent');
+    return;
+  }
+  fetch('https://onesignal.com/api/v1/notifications', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Basic ' + REST_KEY
+    },
+    body: JSON.stringify({
+      app_id: '141d7cd0-8727-4066-a62c-8e0da7f85762',
+      included_segments: ['Total Subscriptions'],
+      headings: { en: title },
+      contents: { en: message },
+      url: url || window.location.href,
+      priority: 10,
+      android_sound: 'notification',
+      android_led_color: 'FF1A56DB',
+      android_visibility: 1,
+      android_channel_id: 'cbe_registrations'
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.errors) console.warn('OneSignal errors:', d.errors);
+    else console.log('Push sent:', d.id);
+  })
+  .catch(function(e){ console.warn('Push failed:', e.message); });
 }
 
 // ── Show notification toast when a new school registers ──
