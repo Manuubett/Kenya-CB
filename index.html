@@ -998,7 +998,7 @@ async function approveRequest(id, schoolName){
 // ── Send OneSignal push notification ──
 function sendPushNotification(title, message, url){
   var REST_KEY = 'REPLACE_WITH_YOUR_ONESIGNAL_REST_API_KEY';
-  if(REST_KEY.includes('141d7cd0-8727-4066-a62c-8e0da7f85762')) {
+  if(REST_KEY.includes('REPLACE')) {
     console.warn('OneSignal REST API Key not set — push not sent');
     return;
   }
@@ -1261,7 +1261,7 @@ async function setPendingStatus(id,status){
 
 // ADMINS
 async function loadAdmins(){
-  try{const snap=await db.collection('user').where('role','in',['admin','secretary']).get();allAdmins=[];snap.forEach(d=>allAdmins.push({id:d.id,...d.data()}));updateStats();renderAdmins();renderRecentSessions();}
+  try{const snap=await db.collection('users').where('role','in',['admin','secretary']).get();allAdmins=[];snap.forEach(d=>allAdmins.push({id:d.id,...d.data()}));updateStats();renderAdmins();renderRecentSessions();}
   catch(e){toast('Failed to load admins: '+e.message,'err');}
 }
 function renderAdmins(){
@@ -1299,7 +1299,7 @@ async function saveAdmin(){
     if(codeSnap.exists){toast('School code '+code+' already exists — use a different code','err');return;}
 
     // Create admin user doc
-    const ref = await db.collection('user').add({
+    const ref = await db.collection('users').add({
       fullName:name,school,email,
       phone:el('aaPhone').value.trim(),
       county:el('aaCounty').value.trim(),
@@ -1331,8 +1331,8 @@ async function saveAdmin(){
   }catch(e){toast('Failed: '+e.message,'err');}
 }
 function openEditAdmin(id){const a=allAdmins.find(x=>x.id===id);if(!a)return;editingAdminId=id;el('eaName').value=a.fullName||'';el('eaSchool').value=a.school||'';el('eaEmail').value=a.email||'';el('eaPhone').value=a.phone||'';el('eaCounty').value=a.county||'';el('eaLicence').value=a.licenceType||'trial';el('eaExpiry').value=a.licenceExpiry||'';el('eaStatus').value=a.status||'active';el('eaMaxLogins').value=a.maxLogins||3;el('eaNotes').value=a.notes||'';openModal('editAdminModal');}
-async function saveEditAdmin(){if(!editingAdminId)return;const name=el('eaName').value.trim();if(!name){toast('Name required','err');return;}try{const upd={fullName:name,school:el('eaSchool').value.trim(),email:el('eaEmail').value.trim(),phone:el('eaPhone').value.trim(),county:el('eaCounty').value.trim(),licenceType:el('eaLicence').value,licenceExpiry:el('eaExpiry').value||null,status:el('eaStatus').value,maxLogins:Number(el('eaMaxLogins').value)||3,notes:el('eaNotes').value.trim(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};await db.collection('user').doc(editingAdminId).update(upd);const a=allAdmins.find(x=>x.id===editingAdminId);Object.assign(a,upd);await writeLog('admin_updated','Admin updated: '+name,upd.school,'blue');updateStats();renderAdmins();closeModal('editAdminModal');toast(name+' updated');editingAdminId=null;}catch(e){toast('Failed: '+e.message,'err');}}
-async function setAdminStatus(id,status){const a=allAdmins.find(x=>x.id===id);if(!a)return;el('confTitle').textContent=status==='suspended'?'Suspend Admin':'Restore Admin';el('confIcon').textContent=status==='suspended'?'🚫':'✅';el('confMsg').innerHTML=`${status==='suspended'?'Suspend':'Restore'} <strong>${a.fullName}</strong> (${a.school})?`;el('confBtn').textContent=status==='suspended'?'Suspend':'Restore';el('confBtn').className=`btn ${status==='suspended'?'btn-danger':'btn-success'}`;el('confBtn').onclick=async()=>{await db.collection('user').doc(id).update({status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});a.status=status;await writeLog(status==='suspended'?'admin_suspended':'admin_restored',`Admin ${status}: ${a.fullName}`,a.school,status==='suspended'?'red':'green');updateStats();renderAdmins();closeModal('confirmModal');toast(`${a.fullName} ${status==='suspended'?'suspended':'restored'}`);};openModal('confirmModal');}
+async function saveEditAdmin(){if(!editingAdminId)return;const name=el('eaName').value.trim();if(!name){toast('Name required','err');return;}try{const upd={fullName:name,school:el('eaSchool').value.trim(),email:el('eaEmail').value.trim(),phone:el('eaPhone').value.trim(),county:el('eaCounty').value.trim(),licenceType:el('eaLicence').value,licenceExpiry:el('eaExpiry').value||null,status:el('eaStatus').value,maxLogins:Number(el('eaMaxLogins').value)||3,notes:el('eaNotes').value.trim(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};await db.collection('users').doc(editingAdminId).update(upd);const a=allAdmins.find(x=>x.id===editingAdminId);Object.assign(a,upd);await writeLog('admin_updated','Admin updated: '+name,upd.school,'blue');updateStats();renderAdmins();closeModal('editAdminModal');toast(name+' updated');editingAdminId=null;}catch(e){toast('Failed: '+e.message,'err');}}
+async function setAdminStatus(id,status){const a=allAdmins.find(x=>x.id===id);if(!a)return;el('confTitle').textContent=status==='suspended'?'Suspend Admin':'Restore Admin';el('confIcon').textContent=status==='suspended'?'🚫':'✅';el('confMsg').innerHTML=`${status==='suspended'?'Suspend':'Restore'} <strong>${a.fullName}</strong> (${a.school})?`;el('confBtn').textContent=status==='suspended'?'Suspend':'Restore';el('confBtn').className=`btn ${status==='suspended'?'btn-danger':'btn-success'}`;el('confBtn').onclick=async()=>{await db.collection('users').doc(id).update({status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});a.status=status;await writeLog(status==='suspended'?'admin_suspended':'admin_restored',`Admin ${status}: ${a.fullName}`,a.school,status==='suspended'?'red':'green');updateStats();renderAdmins();closeModal('confirmModal');toast(`${a.fullName} ${status==='suspended'?'suspended':'restored'}`);};openModal('confirmModal');}
 
 // SESSIONS
 async function loadSessions(){try{const snap=await db.collection('adminSessions').orderBy('loginAt','desc').limit(200).get();allSessions=[];snap.forEach(d=>allSessions.push({id:d.id,...d.data()}));detectSuspiciousActivity();updateStats();renderSessions();renderRecentSessions();updateAlertBadge();}catch(e){}}
