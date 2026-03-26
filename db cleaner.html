@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB Cleaner | CBE System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060a12;--bg2:#0c1220;--bg3:#111a2e;
+  --surface:#0f1929;--surf2:#162035;
+  --border:#1e2d45;--border2:#253852;
+  --text:#e2eaf8;--text2:#7a93b8;--text3:#3d5270;
+  --red:#ef4444;--red-bg:rgba(239,68,68,.1);--red-border:rgba(239,68,68,.25);
+  --amber:#f59e0b;--amber-bg:rgba(245,158,11,.1);--amber-border:rgba(245,158,11,.25);
+  --green:#10b981;--green-bg:rgba(16,185,129,.1);--green-border:rgba(16,185,129,.25);
+  --accent:#3b82f6;--accent-bg:rgba(59,130,246,.1);
+  --sh:0 4px 20px rgba(0,0,0,.4);
+  --r:10px;--r2:6px;
+}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg);color:var(--text);
+  font-size:13px;min-height:100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 20%,rgba(59,130,246,.06) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 80%,rgba(239,68,68,.04) 0%,transparent 50%);
+}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* AUTH */
+#authGate{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:20px;
+}
+.auth-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:32px;width:100%;max-width:380px;
+  box-shadow:var(--sh);animation:fadeUp .4s ease;
+}
+.auth-icon{font-size:32px;margin-bottom:14px;text-align:center}
+.auth-title{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;text-align:center;margin-bottom:4px;color:var(--red)}
+.auth-sub{font-size:12px;color:var(--text3);text-align:center;margin-bottom:22px}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.auth-inp{width:100%;height:40px;padding:0 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);outline:none;transition:border-color .14s}
+.auth-inp:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+.auth-btn{width:100%;height:40px;background:var(--red);color:#fff;border:none;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;cursor:pointer;transition:all .14s;letter-spacing:.5px}
+.auth-btn:hover{background:#dc2626}
+.auth-btn:disabled{opacity:.65;cursor:not-allowed}
+.auth-err{color:var(--red);font-size:11.5px;text-align:center;margin-top:10px;display:none}
+
+/* MAIN */
+#mainPage{display:none}
+
+header{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-logo{
+  width:32px;height:32px;background:var(--red);border-radius:7px;
+  display:grid;place-items:center;font-size:16px;
+  box-shadow:0 0 12px rgba(239,68,68,.4);
+}
+.hdr-title{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--red)}
+.hdr-sub{font-size:10px;color:var(--text3);margin-top:1px}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.env-badge{
+  background:var(--amber-bg);border:1px solid var(--amber-border);
+  color:var(--amber);font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;
+  letter-spacing:.4px;
+}
+.env-badge::before{content:'⚠ '}
+.logout-btn{
+  padding:5px 12px;border-radius:var(--r2);font-family:inherit;font-size:12px;
+  font-weight:600;cursor:pointer;background:none;border:1px solid var(--border);
+  color:var(--text3);transition:all .14s;
+}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+.outer{max-width:860px;margin:0 auto;padding:28px 24px}
+
+/* WARNING BANNER */
+.warning-banner{
+  background:var(--red-bg);border:1px solid var(--red-border);
+  border-left:4px solid var(--red);border-radius:var(--r);
+  padding:14px 18px;margin-bottom:24px;
+  display:flex;align-items:flex-start;gap:12px;
+}
+.wb-icon{font-size:20px;flex-shrink:0}
+.wb-title{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--red);margin-bottom:4px}
+.wb-msg{font-size:12px;color:var(--text2);line-height:1.65}
+
+/* SECTION */
+.section{margin-bottom:28px;animation:fadeUp .3s ease both}
+.section:nth-child(2){animation-delay:.05s}
+.section:nth-child(3){animation-delay:.1s}
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.section-title{
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;
+  color:var(--text3);text-transform:uppercase;letter-spacing:.6px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-title::before{content:'';width:3px;height:14px;background:var(--red);border-radius:2px}
+
+/* SCHOOL CARD */
+.school-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 16px;margin-bottom:8px;
+  display:flex;align-items:center;gap:14px;
+  transition:border-color .14s,background .14s;
+}
+.school-card:hover{border-color:var(--border2);background:var(--surf2)}
+.school-card.selected{border-color:var(--red);background:var(--red-bg)}
+.sc-check{
+  width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);
+  display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:all .14s;
+}
+.sc-check.checked{background:var(--red);border-color:var(--red)}
+.sc-check.checked::after{content:'✓';color:#fff;font-size:11px;font-weight:800}
+.sc-icon{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--surf2);border:1px solid var(--border);
+  display:grid;place-items:center;font-size:18px;flex-shrink:0;
+}
+.sc-body{flex:1;min-width:0}
+.sc-name{font-weight:700;font-size:13.5px;color:var(--text);margin-bottom:3px}
+.sc-meta{display:flex;flex-wrap:wrap;gap:8px}
+.sc-meta-item{font-size:11.5px;color:var(--text3);display:flex;align-items:center;gap:3px}
+.sc-meta-item strong{color:var(--text2)}
+.sc-stats{display:flex;gap:8px;flex-shrink:0}
+.sc-stat{
+  background:var(--bg2);border:1px solid var(--border);border-radius:5px;
+  padding:4px 10px;text-align:center;min-width:52px;
+}
+.sc-stat-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:var(--accent)}
+.sc-stat-lbl{font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
+.sc-actions{display:flex;gap:6px;flex-shrink:0}
+.sc-clear-btn{
+  padding:5px 12px;border-radius:var(--r2);font-family:inherit;font-size:12px;font-weight:700;
+  cursor:pointer;background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);
+  transition:all .14s;
+}
+.sc-clear-btn:hover{background:var(--red);color:#fff}
+.sc-clear-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* COLLECTIONS GRID */
+.collections-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;
+}
+.coll-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);
+  padding:12px 14px;cursor:pointer;transition:all .14s;position:relative;
+}
+.coll-card:hover{border-color:var(--border2);background:var(--surf2)}
+.coll-card.selected{border-color:var(--red);background:var(--red-bg)}
+.coll-card.global-only{border-color:var(--amber-border);background:var(--amber-bg)}
+.coll-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.coll-desc{font-size:11px;color:var(--text3);line-height:1.5}
+.coll-count{
+  position:absolute;top:8px;right:8px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  color:var(--accent);background:var(--accent-bg);
+  padding:1px 6px;border-radius:10px;
+}
+.coll-badge{
+  font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;
+  display:inline-block;margin-top:4px;
+}
+.coll-badge.school{background:var(--accent-bg);color:var(--accent)}
+.coll-badge.global{background:var(--amber-bg);color:var(--amber)}
+
+/* ACTION BAR */
+.action-bar{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  position:sticky;bottom:20px;box-shadow:0 8px 32px rgba(0,0,0,.6);
+}
+.action-summary{flex:1;min-width:200px}
+.action-summary-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;color:var(--text);margin-bottom:2px}
+.action-summary-sub{font-size:11.5px;color:var(--text3)}
+.clear-btn{
+  padding:10px 20px;border-radius:var(--r2);
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;
+  cursor:pointer;border:none;
+  background:var(--red);color:#fff;
+  display:flex;align-items:center;gap:7px;
+  transition:all .14s;letter-spacing:.3px;
+}
+.clear-btn:hover:not(:disabled){background:#dc2626;box-shadow:0 0 20px rgba(239,68,68,.4)}
+.clear-btn:disabled{opacity:.4;cursor:not-allowed}
+.clear-all-btn{
+  padding:10px 20px;border-radius:var(--r2);
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;
+  cursor:pointer;border:2px solid var(--red);
+  background:none;color:var(--red);
+  display:flex;align-items:center;gap:7px;
+  transition:all .14s;letter-spacing:.3px;
+}
+.clear-all-btn:hover:not(:disabled){background:var(--red);color:#fff}
+.clear-all-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* PROGRESS */
+#progressSection{display:none;margin-bottom:24px}
+.progress-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 20px;
+}
+.progress-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.progress-bar-track{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-bottom:12px}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--red),#f97316);border-radius:3px;transition:width .3s ease}
+.progress-log{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);
+  max-height:140px;overflow-y:auto;line-height:1.8;
+}
+.progress-log .log-ok{color:var(--green)}
+.progress-log .log-err{color:var(--red)}
+.progress-log .log-info{color:var(--text2)}
+
+/* CONFIRM MODAL */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
+  backdrop-filter:blur(8px);z-index:900;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--red-border);border-radius:14px;
+  width:100%;max-width:420px;overflow:hidden;
+  animation:fadeUp .25s ease;box-shadow:0 24px 60px rgba(0,0,0,.7);
+}
+.modal-head{
+  padding:20px 22px;border-bottom:1px solid var(--border);
+  background:var(--red-bg);
+}
+.modal-title{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;color:var(--red)}
+.modal-body{padding:20px 22px}
+.modal-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px}
+.modal-confirm-field{margin-bottom:16px}
+.modal-confirm-field label{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:10px;
+  font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;
+}
+.modal-confirm-inp{
+  width:100%;height:40px;padding:0 12px;
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);
+  font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);outline:none;
+  transition:border-color .14s;letter-spacing:1px;
+}
+.modal-confirm-inp:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,158,11,.1)}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.btn-cancel{
+  padding:8px 16px;border-radius:var(--r2);font-family:inherit;font-size:13px;
+  font-weight:600;cursor:pointer;background:none;border:1px solid var(--border);color:var(--text3);transition:all .14s;
+}
+.btn-cancel:hover{border-color:var(--border2);color:var(--text)}
+.btn-confirm{
+  padding:8px 18px;border-radius:var(--r2);
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;
+  cursor:pointer;border:none;background:var(--red);color:#fff;transition:all .14s;letter-spacing:.3px;
+}
+.btn-confirm:hover:not(:disabled){background:#dc2626}
+.btn-confirm:disabled{opacity:.5;cursor:not-allowed}
+
+/* TOAST */
+#tc{position:fixed;top:16px;right:16px;z-index:999;display:flex;flex-direction:column;gap:6px}
+.t{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:var(--r2);font-size:12.5px;font-weight:500;box-shadow:var(--sh);animation:tin .25s ease;min-width:210px;font-family:'JetBrains Mono',monospace}
+.t.ok{background:#064e3b;color:#ecfdf5;border-left:3px solid #10b981}
+.t.err{background:#450a0a;color:#fef2f2;border-left:3px solid #ef4444}
+.t.info{background:#172554;color:#dbeafe;border-left:3px solid #3b82f6}
+@keyframes tin{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes tout{to{transform:translateX(110%);opacity:0}}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block}
+</style>
+</head>
+<body>
+
+<div id="tc"></div>
+
+<!-- AUTH GATE -->
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-icon">🔐</div>
+    <div class="auth-title">DB CLEANER</div>
+    <div class="auth-sub">Restricted access · Owner credentials required</div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input class="auth-inp" type="email" id="authEmail" placeholder="owner@cbe.ac.ke" autocomplete="email">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input class="auth-inp" type="password" id="authPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()">
+    </div>
+    <button class="auth-btn" id="authBtn" onclick="doAuth()">AUTHENTICATE</button>
+    <div class="auth-err" id="authErr">Invalid credentials</div>
+    <div id="debugLog" style="margin-top:14px;background:#060a12;border:1px solid #1e2d45;border-radius:6px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:10.5px;max-height:130px;overflow-y:auto;display:none"></div>
+    <button onclick="el('debugLog').style.display=el('debugLog').style.display==='none'?'block':'none'" style="margin-top:8px;width:100%;padding:4px;background:none;border:1px solid #1e2d45;border-radius:4px;color:#3d5270;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:.3px">🔍 TOGGLE DEBUG LOG</button>
+  </div>
+</div>
+
+<!-- MAIN PAGE -->
+<div id="mainPage">
+  <header>
+    <div class="hdr-brand">
+      <div class="hdr-logo">🗑️</div>
+      <div>
+        <div class="hdr-title">DB CLEANER</div>
+        <div class="hdr-sub">Firestore Data Management · CBE System</div>
+      </div>
+    </div>
+    <div class="hdr-r">
+      <span class="env-badge">DESTRUCTIVE TOOL</span>
+      <button class="logout-btn" onclick="doLogout()">Lock</button>
+    </div>
+  </header>
+
+  <div class="outer">
+
+    <!-- WARNING -->
+    <div class="warning-banner">
+      <div class="wb-icon">⚠️</div>
+      <div>
+        <div class="wb-title">IRREVERSIBLE OPERATIONS</div>
+        <div class="wb-msg">All deletions are permanent and cannot be undone. Use this tool only when transitioning from testing to production, or when a specific school's data needs to be cleared. Always confirm you have selected the correct school and collections before proceeding.</div>
+      </div>
+    </div>
+
+    <!-- DEBUG PANEL -->
+    <div id="mainDebugPanel" style="margin-bottom:16px;background:#060a12;border:1px solid #1e2d45;border-radius:8px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid #1e2d45;cursor:pointer" onclick="const b=el('mainDebugLog');b.style.display=b.style.display==='none'?'block':'none'">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#3d5270;letter-spacing:.5px">&#128269; DEBUG LOG</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#3d5270">click to toggle</span>
+      </div>
+      <div id="mainDebugLog" style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:10.5px;max-height:160px;overflow-y:auto;line-height:1.7"></div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="progressSection">
+      <div class="progress-card">
+        <div class="progress-title">
+          <span class="spin"></span>
+          <span id="progressTitle">Clearing data…</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+        </div>
+        <div class="progress-log" id="progressLog"></div>
+      </div>
+    </div>
+
+    <!-- SCHOOLS SECTION -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Schools</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:var(--text3)" id="schoolsLoadLabel">Loading…</span>
+          <button onclick="loadSchools()" style="padding:3px 10px;border-radius:4px;font-family:inherit;font-size:11px;cursor:pointer;background:none;border:1px solid var(--border);color:var(--text3)">🔄</button>
+        </div>
+      </div>
+      <div id="schoolsList">
+        <div style="text-align:center;padding:30px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px">Loading schools…</div>
+      </div>
+    </div>
+
+    <!-- COLLECTIONS SECTION -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Collections to Clear</div>
+        <div style="display:flex;gap:6px">
+          <button onclick="selectAllColls()" style="padding:3px 10px;border-radius:4px;font-family:inherit;font-size:11px;cursor:pointer;background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)">Select All</button>
+          <button onclick="selectNoneColls()" style="padding:3px 10px;border-radius:4px;font-family:inherit;font-size:11px;cursor:pointer;background:none;border:1px solid var(--border);color:var(--text3)">None</button>
+        </div>
+      </div>
+      <div class="collections-grid" id="collGrid"></div>
+    </div>
+
+    <!-- SPACER for sticky bar -->
+    <div style="height:80px"></div>
+
+    <!-- STICKY ACTION BAR -->
+    <div class="action-bar">
+      <div class="action-summary">
+        <div class="action-summary-title" id="actionTitle">Select schools and collections</div>
+        <div class="action-summary-sub" id="actionSub">Nothing selected</div>
+      </div>
+      <button class="clear-btn" id="clearSelBtn" onclick="confirmClear('selected')" disabled>
+        🗑️ Clear Selected School
+      </button>
+      <button class="clear-all-btn" id="clearAllBtn" onclick="confirmClear('all')" disabled>
+        ☢️ Clear ALL Data
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="confirmTitle">⚠️ Confirm Deletion</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc" id="confirmDesc">—</div>
+      <div class="modal-confirm-field">
+        <label>Type <span id="confirmWord" style="color:var(--red)">DELETE</span> to confirm</label>
+        <input class="modal-confirm-inp" id="confirmInp" placeholder="Type here…" oninput="checkConfirmWord()">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm" id="confirmBtn" onclick="executeClean()" disabled>DELETE</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBdabXqlBQ-6yVNJKdu8Zhb9Cm_-59_u24",
+  authDomain:"bett-294a2.firebaseapp.com",
+  projectId:"bett-294a2",
+  storageBucket:"bett-294a2.appspot.com",
+  messagingSenderId:"1055511650032",
+  appId:"1:1055511650032:web:7e0f9c28e58515f549ac35"
+});
+const db   = firebase.firestore();
+const auth = firebase.auth();
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
+const el = id => document.getElementById(id);
+
+// ── Config ──
+const CONFIRM_WORD = 'DELETE';
+
+const COLLECTIONS = [
+  {id:'students',        label:'Students',           desc:'All enrolled students',            type:'school', icon:'👥'},
+  {id:'results',         label:'Mark Results',       desc:'All saved mark sheet results',     type:'school', icon:'📊'},
+  {id:'users',           label:'Teachers',           desc:'Teacher accounts',                 type:'school', icon:'👩‍🏫'},
+  {id:'adminSessions',   label:'Admin Sessions',     desc:'Login session records',            type:'school', icon:'🔐'},
+  {id:'teacherRequests', label:'Teacher Requests',   desc:'Teacher registration requests',    type:'school', icon:'📝'},
+  {id:'approvedSchools', label:'School Records',     desc:'School registration & approval',   type:'global', icon:'🏫'},
+  {id:'settings',        label:'School Settings',    desc:'School name, logo, config',        type:'global', icon:'⚙️'},
+  {id:'ownerLog',        label:'Owner Activity Log', desc:'System audit trail',               type:'global', icon:'📋'},
+];
+
+// ── State ──
+let allSchools       = [];
+let selectedSchoolId = null;
+let selectedColls    = new Set();
+let clearMode        = null;
+let isAuthed         = false;
+
+// ── Debug log ──
+function dbg(msg, type) {
+  type = type || 'info';
+  const ts    = new Date().toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const line  = '[' + ts + '] ' + msg;
+  const color = type === 'err'  ? '#f87171' :
+                type === 'ok'   ? '#34d399' :
+                type === 'warn' ? '#fbbf24' : '#94a3b8';
+  console.log('[DBCleaner] ' + line);
+  ['debugLog','mainDebugLog'].forEach(function(id) {
+    const box = el(id);
+    if (!box) return;
+    const d = document.createElement('div');
+    d.style.color          = color;
+    d.style.lineHeight     = '1.7';
+    d.style.wordBreak      = 'break-all';
+    d.textContent          = '› ' + line;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  });
+}
+
+// ── Toast ──
+function toast(msg, type) {
+  type = type || 'ok';
+  const t = document.createElement('div');
+  t.className = 't ' + type;
+  const icon = type === 'ok' ? '✅' : type === 'err' ? '❌' : 'ℹ️';
+  t.innerHTML = '<span>' + icon + '</span>' + msg;
+  el('tc').appendChild(t);
+  setTimeout(function() {
+    t.style.animation = 'tout .25s ease forwards';
+    setTimeout(function() { t.remove(); }, 280);
+  }, 3500);
+}
+
+// ── Auth ──
+el('authGate').style.display = 'flex';
+el('mainPage').style.display = 'none';
+setTimeout(function() { var b = el('debugLog'); if (b) b.style.display = 'block'; }, 50);
+
+dbg('Firebase initialised — waiting for auth state…');
+
+auth.onAuthStateChanged(function(u) {
+  if (!u) {
+    dbg('No user signed in');
+    el('authGate').style.display = 'flex';
+    el('mainPage').style.display = 'none';
+    isAuthed = false;
+    return;
+  }
+  dbg('Signed in: ' + u.email + ' (uid: ' + u.uid + ')');
+
+  // Check 'users' then 'user' collection for owner role
+  var collectionsToTry = ['users', 'user'];
+  var idx = 0;
+
+  function tryNext() {
+    if (idx >= collectionsToTry.length) {
+      // No doc found in either collection — grant access (first-time / no role doc)
+      dbg('No user doc found — granting access (no role doc exists)', 'warn');
+      grantAccess();
+      return;
+    }
+    var coll = collectionsToTry[idx++];
+    dbg('Checking ' + coll + '/' + u.uid + '…');
+    db.collection(coll).doc(u.uid).get().then(function(snap) {
+      dbg(coll + '/' + u.uid + ' exists: ' + snap.exists + (snap.exists ? ' | role: ' + snap.data().role : ''));
+      if (!snap.exists) { tryNext(); return; }
+      var role = snap.data().role;
+      if (role === 'owner') {
+        dbg('Owner verified in "' + coll + '" ✅', 'ok');
+        grantAccess();
+      } else {
+        dbg('Role is "' + role + '" — not owner, access denied', 'err');
+        auth.signOut();
+        showAuthErr('Access denied — role is "' + role + '", owner required.');
+      }
+    }).catch(function(e) {
+      dbg('Error reading ' + coll + '/' + u.uid + ': [' + e.code + '] ' + e.message, 'warn');
+      tryNext();
+    });
+  }
+  tryNext();
+});
+
+function grantAccess() {
+  isAuthed = true;
+  el('authGate').style.display = 'none';
+  el('mainPage').style.display = 'block';
+  loadSchools();
+  buildCollGrid();
+}
+
+function showAuthErr(msg) {
+  dbg('Auth error: ' + msg, 'err');
+  var errEl = el('authErr');
+  errEl.textContent = msg;
+  errEl.style.display = 'block';
+  var btn = el('authBtn');
+  if (btn) { btn.disabled = false; btn.textContent = 'AUTHENTICATE'; }
+  setTimeout(function() { errEl.style.display = 'none'; }, 5000);
+}
+
+function doAuth() {
+  var email = el('authEmail').value.trim();
+  var pass  = el('authPass').value;
+  if (!email || !pass) { showAuthErr('Enter email and password.'); return; }
+  var btn = el('authBtn');
+  btn.disabled    = true;
+  btn.textContent = 'Verifying…';
+  dbg('Attempting sign-in: ' + email);
+  auth.signInWithEmailAndPassword(email, pass).then(function() {
+    dbg('signInWithEmailAndPassword OK — waiting for onAuthStateChanged…', 'ok');
+  }).catch(function(e) {
+    dbg('Sign-in failed: [' + e.code + '] ' + e.message, 'err');
+    var msg = (e.code === 'auth/invalid-credential' ||
+               e.code === 'auth/wrong-password'     ||
+               e.code === 'auth/user-not-found')
+      ? 'Invalid email or password.' : e.message;
+    showAuthErr(msg);
+  });
+}
+
+function doLogout() {
+  dbg('Logging out…');
+  auth.signOut();
+}
+
+// ── Load schools ──
+function loadSchools() {
+  dbg('loadSchools() called');
+  el('schoolsList').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-family:JetBrains Mono,monospace;font-size:12px"><span class="spin"></span> Loading…</div>';
+  dbg('Querying approvedSchools…');
+  db.collection('approvedSchools').get().then(function(snap) {
+    dbg('approvedSchools: ' + snap.size + ' docs', snap.size > 0 ? 'ok' : 'warn');
+    allSchools = [];
+    snap.forEach(function(d) { allSchools.push(Object.assign({id: d.id}, d.data())); });
+    allSchools.sort(function(a,b) { return (a.schoolName||'').localeCompare(b.schoolName||''); });
+    el('schoolsLoadLabel').textContent = allSchools.length + ' schools found';
+    renderSchools();
+  }).catch(function(e) {
+    dbg('loadSchools ERROR: [' + e.code + '] ' + e.message, 'err');
+    el('schoolsList').innerHTML = '<div style="color:var(--red);font-family:JetBrains Mono,monospace;font-size:12px;padding:20px">Error loading schools: ' + e.message + '</div>';
+    el('schoolsLoadLabel').textContent = 'Error';
+  });
+}
+
+// ── Render schools ──
+function renderSchools() {
+  dbg('renderSchools() — ' + allSchools.length + ' schools');
+  if (!allSchools.length) {
+    el('schoolsList').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-family:JetBrains Mono,monospace;font-size:12px">No schools found in Firestore</div>';
+    return;
+  }
+
+  var counts = {};
+  allSchools.forEach(function(s) { counts[s.uid||s.id] = '…'; });
+
+  function buildCard(s) {
+    var uid       = s.uid || s.id;
+    var st        = s.status || 'pending';
+    var stColor   = st === 'approved' ? 'var(--green)' : st === 'suspended' ? 'var(--red)' : 'var(--amber)';
+    var selected  = selectedSchoolId === uid;
+    var cnt       = counts[uid];
+    var html = '<div class="school-card' + (selected ? ' selected' : '') + '" id="sc-' + uid + '" onclick="selectSchool(\'' + uid + '\')">';
+    html += '<div class="sc-check' + (selected ? ' checked' : '') + '" id="scheck-' + uid + '"></div>';
+    html += '<div class="sc-icon">🏫</div>';
+    html += '<div class="sc-body">';
+    html += '<div class="sc-name">' + (s.schoolName || 'Unknown School') + '</div>';
+    html += '<div class="sc-meta">';
+    if (s.county)    html += '<span class="sc-meta-item">📍 <strong>' + s.county + '</strong></span>';
+    if (s.principal) html += '<span class="sc-meta-item">👤 ' + s.principal + '</span>';
+    html += '<span class="sc-meta-item" style="color:' + stColor + ';font-weight:700">● ' + st.toUpperCase() + '</span>';
+    html += '</div></div>';
+    html += '<div class="sc-stats"><div class="sc-stat">';
+    html += '<div class="sc-stat-val" id="cnt-' + uid + '">' + cnt + '</div>';
+    html += '<div class="sc-stat-lbl">docs</div></div></div></div>';
+    return html;
+  }
+
+  el('schoolsList').innerHTML = allSchools.map(buildCard).join('');
+  updateActionBar();
+
+  // Fetch doc counts per school in background
+  var schoolColls = COLLECTIONS.filter(function(c) { return c.type === 'school'; });
+  var schoolIdx   = 0;
+
+  function countNextSchool() {
+    if (schoolIdx >= allSchools.length) { dbg('Doc count pass complete', 'ok'); return; }
+    var s   = allSchools[schoolIdx++];
+    var uid = s.uid || s.id;
+    var total    = 0;
+    var collIdx  = 0;
+
+    function countNextColl() {
+      if (collIdx >= schoolColls.length) {
+        counts[uid] = total;
+        var cntEl = el('cnt-' + uid);
+        if (cntEl) cntEl.textContent = total;
+        dbg('"' + (s.schoolName||uid) + '" total: ' + total + ' docs', 'ok');
+        countNextSchool();
+        return;
+      }
+      var coll = schoolColls[collIdx++];
+      db.collection(coll.id).where('schoolId','==',uid).get().then(function(snap) {
+        dbg('  ' + coll.id + ' / ' + uid + ': ' + snap.size + ' docs');
+        total += snap.size;
+        countNextColl();
+      }).catch(function(e) {
+        dbg('  ' + coll.id + ' / ' + uid + ' FAILED: [' + e.code + '] ' + e.message, 'err');
+        countNextColl();
+      });
+    }
+    countNextColl();
+  }
+  countNextSchool();
+}
+
+function selectSchool(uid) {
+  selectedSchoolId = selectedSchoolId === uid ? null : uid;
+  allSchools.forEach(function(s) {
+    var id    = s.uid || s.id;
+    var card  = el('sc-' + id);
+    var check = el('scheck-' + id);
+    if (card)  card.classList.toggle('selected', id === selectedSchoolId);
+    if (check) check.classList.toggle('checked',  id === selectedSchoolId);
+  });
+  updateActionBar();
+}
+
+// ── Collections grid ──
+function buildCollGrid() {
+  el('collGrid').innerHTML = COLLECTIONS.map(function(c) {
+    return '<div class="coll-card' + (c.type === 'global' ? ' global-only' : '') + '" id="coll-' + c.id + '" onclick="toggleColl(\'' + c.id + '\')">'
+      + '<div class="coll-name">' + c.icon + ' ' + c.label + '</div>'
+      + '<div class="coll-desc">' + c.desc + '</div>'
+      + '<span class="coll-badge ' + c.type + '">' + (c.type === 'school' ? 'per-school' : 'global') + '</span>'
+      + '</div>';
+  }).join('');
+  COLLECTIONS.filter(function(c) { return c.type === 'school'; })
+             .forEach(function(c) { toggleColl(c.id, true); });
+}
+
+function toggleColl(id, forceOn) {
+  var card = el('coll-' + id);
+  if (!card) return;
+  var on = (forceOn !== undefined && forceOn !== null) ? forceOn : !selectedColls.has(id);
+  if (on) selectedColls.add(id);
+  else    selectedColls.delete(id);
+  card.classList.toggle('selected', on);
+  updateActionBar();
+}
+
+function selectAllColls() { COLLECTIONS.forEach(function(c) { toggleColl(c.id, true); }); }
+function selectNoneColls() { COLLECTIONS.forEach(function(c) { toggleColl(c.id, false); }); }
+
+// ── Action bar ──
+function updateActionBar() {
+  var hasSchool = !!selectedSchoolId;
+  var hasColls  = selectedColls.size > 0;
+  var school    = allSchools.find(function(s) { return (s.uid||s.id) === selectedSchoolId; });
+  var collNames = Array.from(selectedColls).map(function(id) {
+    var c = COLLECTIONS.find(function(c) { return c.id === id; });
+    return c ? c.label : id;
+  });
+
+  if (hasSchool && hasColls) {
+    el('actionTitle').textContent = 'Clear: ' + (school ? school.schoolName : '?') + ' · ' + selectedColls.size + ' collection' + (selectedColls.size > 1 ? 's' : '');
+    el('actionSub').textContent   = collNames.join(', ');
+    el('clearSelBtn').disabled    = false;
+  } else if (!hasSchool && hasColls) {
+    el('actionTitle').textContent = selectedColls.size + ' collection' + (selectedColls.size > 1 ? 's' : '') + ' selected';
+    el('actionSub').textContent   = 'Select a school to clear specific data';
+    el('clearSelBtn').disabled    = true;
+  } else {
+    el('actionTitle').textContent = 'Select schools and collections';
+    el('actionSub').textContent   = 'Nothing selected';
+    el('clearSelBtn').disabled    = true;
+  }
+  el('clearAllBtn').disabled = selectedColls.size === 0;
+}
+
+// ── Confirm modal ──
+function confirmClear(mode) {
+  clearMode = mode;
+  var school    = allSchools.find(function(s) { return (s.uid||s.id) === selectedSchoolId; });
+  var collNames = Array.from(selectedColls).map(function(id) {
+    var c = COLLECTIONS.find(function(c) { return c.id === id; });
+    return c ? c.label : id;
+  }).join(', ');
+  if (mode === 'selected') {
+    el('confirmTitle').textContent = '⚠️ Clear School Data';
+    el('confirmDesc').innerHTML    = 'This will permanently delete all data for <strong style="color:var(--red)">' + (school ? school.schoolName : '?') + '</strong> from:<br><br><strong style="color:var(--text)">' + collNames + '</strong><br><br>This action <strong>cannot be undone</strong>.';
+  } else {
+    el('confirmTitle').textContent = '☢️ Clear ALL System Data';
+    el('confirmDesc').innerHTML    = 'This will permanently delete data from ALL schools for:<br><br><strong style="color:var(--red)">' + collNames + '</strong><br><br>⚠️ Global collections will be completely wiped.<br>This action <strong>cannot be undone</strong>.';
+  }
+  el('confirmInp').value        = '';
+  el('confirmBtn').disabled     = true;
+  el('confirmModal').classList.add('open');
+  setTimeout(function() { el('confirmInp').focus(); }, 100);
+}
+
+function closeConfirm() {
+  el('confirmModal').classList.remove('open');
+  clearMode = null;
+}
+
+function checkConfirmWord() {
+  el('confirmBtn').disabled = el('confirmInp').value.trim() !== CONFIRM_WORD;
+}
+
+// ── Execute clean ──
+function executeClean() {
+  closeConfirm();
+  el('progressSection').style.display = 'block';
+  el('progressSection').scrollIntoView({behavior:'smooth'});
+  el('progressBar').style.width  = '0%';
+  el('progressLog').innerHTML    = '';
+
+  var collsToProcess = Array.from(selectedColls).map(function(id) {
+    return COLLECTIONS.find(function(c) { return c.id === id; });
+  }).filter(Boolean);
+
+  var school      = allSchools.find(function(s) { return (s.uid||s.id) === selectedSchoolId; });
+  var totalOps    = collsToProcess.length;
+  var doneOps     = 0;
+  var totalDeleted = 0;
+
+  el('progressTitle').textContent = clearMode === 'all' ? 'Clearing all data…' : 'Clearing ' + (school ? school.schoolName : '?') + '…';
+
+  function logLine(msg, type) {
+    type = type || 'info';
+    var d = document.createElement('div');
+    d.className   = 'log-' + type;
+    d.textContent = '› ' + msg;
+    el('progressLog').appendChild(d);
+    el('progressLog').scrollTop = el('progressLog').scrollHeight;
+  }
+
+  function processNextColl(idx) {
+    if (idx >= collsToProcess.length) {
+      el('progressTitle').textContent  = 'Done — ' + totalDeleted + ' documents deleted';
+      el('progressBar').style.background = 'var(--green)';
+      logLine('Complete: ' + totalDeleted + ' total documents removed', 'ok');
+      toast('✅ Done — ' + totalDeleted + ' docs deleted', 'ok');
+      setTimeout(function() { loadSchools(); }, 1000);
+      return;
+    }
+
+    var coll = collsToProcess[idx];
+    logLine('Processing ' + coll.label + ' (' + coll.id + ')…');
+
+    var uid = selectedSchoolId;
+
+    // Handle direct-doc-keyed global collections
+    if (clearMode !== 'all' && (coll.id === 'approvedSchools' || coll.id === 'settings')) {
+      db.collection(coll.id).doc(uid).delete().then(function() {
+        logLine('Deleted 1 doc from ' + coll.label, 'ok');
+        totalDeleted++;
+        doneOps++;
+        el('progressBar').style.width = ((doneOps / totalOps) * 100) + '%';
+        processNextColl(idx + 1);
+      }).catch(function(e) {
+        logLine('Error in ' + coll.label + ': ' + e.message, 'err');
+        doneOps++;
+        el('progressBar').style.width = ((doneOps / totalOps) * 100) + '%';
+        processNextColl(idx + 1);
+      });
+      return;
+    }
+
+    var query = (clearMode === 'all' || coll.type === 'global')
+      ? db.collection(coll.id)
+      : db.collection(coll.id).where('schoolId','==',uid);
+
+    function deleteBatch(deleted) {
+      query.limit(500).get().then(function(snap) {
+        if (snap.empty) {
+          logLine('✓ Deleted ' + deleted + ' docs from ' + coll.label, 'ok');
+          totalDeleted += deleted;
+          doneOps++;
+          el('progressBar').style.width = ((doneOps / totalOps) * 100) + '%';
+          processNextColl(idx + 1);
+          return;
+        }
+        var batch = db.batch();
+        snap.forEach(function(d) { batch.delete(d.ref); });
+        batch.commit().then(function() {
+          deleteBatch(deleted + snap.size);
+        }).catch(function(e) {
+          logLine('✗ Batch error in ' + coll.label + ': ' + e.message, 'err');
+          doneOps++;
+          el('progressBar').style.width = ((doneOps / totalOps) * 100) + '%';
+          processNextColl(idx + 1);
+        });
+      }).catch(function(e) {
+        logLine('✗ Query error in ' + coll.label + ': ' + e.message, 'err');
+        doneOps++;
+        el('progressBar').style.width = ((doneOps / totalOps) * 100) + '%';
+        processNextColl(idx + 1);
+      });
+    }
+    deleteBatch(0);
+  }
+
+  processNextColl(0);
+}
+
+</script>
+</body>
+</html>
