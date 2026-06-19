@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBE Owner | Communications</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f2f7;
+  --surface:#ffffff;
+  --surf2:#f7f8fc;
+  --surf3:#eef0f8;
+  --border:#e2e6f0;
+  --border2:#d0d5e8;
+  --text:#0f172a;
+  --text2:#475569;
+  --text3:#94a3b8;
+  --accent:#2563eb;
+  --accent-h:#1d4ed8;
+  --accent-light:#eff6ff;
+  --accent-border:#bfdbfe;
+  --green:#059669;--green-bg:#ecfdf5;--green-tx:#065f46;--green-border:#a7f3d0;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-tx:#78350f;--amber-border:#fde68a;
+  --red:#dc2626;--red-bg:#fef2f2;--red-tx:#7f1d1d;--red-border:#fecaca;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-tx:#4c1d95;--purple-border:#ddd6fe;
+  --sh:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+  --sh2:0 4px 16px rgba(15,23,42,.08),0 2px 6px rgba(15,23,42,.04);
+  --sh3:0 20px 40px rgba(15,23,42,.12),0 8px 16px rgba(15,23,42,.06);
+  --r:12px;--r2:8px;--r3:6px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh;-webkit-font-smoothing:antialiased}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes tin{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes tout{to{transform:translateX(110%);opacity:0}}
+
+/* Header */
+header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;box-shadow:var(--sh);
+}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{
+  width:34px;height:34px;
+  background:linear-gradient(135deg,var(--accent),#7c3aed);
+  border-radius:10px;display:grid;place-items:center;color:#fff;font-size:17px;
+  box-shadow:0 4px 10px rgba(37,99,235,.25);flex-shrink:0;
+}
+.logo-text .lt{font-size:14px;font-weight:800;letter-spacing:-.4px}
+.logo-text .ls{font-size:10px;color:var(--text3);font-weight:500;margin-top:1px}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.owner-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--purple-bg);color:var(--purple-tx);
+  border:1px solid var(--purple-border);
+  font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.2px;
+}
+.hdr-divider{width:1px;height:20px;background:var(--border);margin:0 2px}
+.broadcast-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--green-bg);color:var(--green-tx);
+  border:1px solid var(--green-border);
+  font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.2px;
+}
+
+/* Nav */
+.nav-tabs{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;position:sticky;top:58px;z-index:190;
+  box-shadow:var(--sh);overflow-x:auto;gap:2px;
+}
+.nav-tab{
+  padding:0 18px;height:48px;font-size:12.5px;font-weight:600;
+  color:var(--text3);cursor:pointer;border:none;background:none;
+  border-bottom:2.5px solid transparent;transition:all .14s;
+  display:flex;align-items:center;gap:6px;font-family:inherit;
+  white-space:nowrap;flex-shrink:0;letter-spacing:-.1px;
+}
+.nav-tab:hover{color:var(--text2);background:var(--surf2)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-badge{background:var(--red);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;margin-left:1px;font-weight:700}
+
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.outer{padding:24px 28px;max-width:1320px;margin:0 auto}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:var(--r3);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:all .14s;white-space:nowrap;height:34px;letter-spacing:-.1px}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.2)}.btn-primary:hover{background:var(--accent-h)}
+.btn-success{background:var(--green);color:#fff}.btn-success:hover{background:#047857}
+.btn-outline{background:none;border:1.5px solid var(--border);color:var(--text2)}.btn-outline:hover{background:var(--surf2);border-color:var(--border2);color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#b91c1c}
+.btn-ghost{background:none;border:none;color:var(--text3);padding:5px 10px}.btn-ghost:hover{color:var(--red);background:var(--red-bg)}
+.btn-sm{padding:3px 10px;font-size:11.5px;height:28px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.ml-auto{margin-left:auto}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);
+  display:flex;flex-direction:column;gap:6px;animation:fadeUp .3s ease both;
+}
+.stat-card-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:17px;margin-bottom:2px}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;line-height:1;letter-spacing:-1px}
+.stat-lbl{font-size:10.5px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.s-blue .stat-card-icon{background:var(--accent-light)}.s-blue .stat-val{color:var(--accent)}
+.s-green .stat-card-icon{background:var(--green-bg)}.s-green .stat-val{color:var(--green)}
+.s-amber .stat-card-icon{background:var(--amber-bg)}.s-amber .stat-val{color:var(--amber)}
+.s-red .stat-card-icon{background:var(--red-bg)}.s-red .stat-val{color:var(--red)}
+.s-purple .stat-card-icon{background:var(--purple-bg)}.s-purple .stat-val{color:var(--purple)}
+
+/* Section headers */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.sec-title{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.sec-sub{font-size:12px;color:var(--text3);font-weight:500;margin-left:6px}
+.sec-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search-wrap{position:relative}
+.search-wrap input{
+  height:34px;padding:0 12px 0 32px;
+  border:1.5px solid var(--border);border-radius:var(--r3);
+  font-family:inherit;font-size:12.5px;color:var(--text);
+  background:var(--surface);outline:none;width:220px;transition:all .14s;
+}
+.search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.search-wrap::before{content:'🔍';position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;opacity:.4}
+.fsel{height:34px;padding:0 10px;border:1.5px solid var(--border);border-radius:var(--r3);font-family:inherit;font-size:12.5px;color:var(--text);background:var(--surface);cursor:pointer;outline:none}
+.fsel:focus{border-color:var(--accent)}
+
+/* Layout: compose grid */
+.compose-grid{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
+@media (max-width:980px){.compose-grid{grid-template-columns:1fr}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);animation:fadeUp .3s ease both;overflow:hidden}
+.panel-head{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surf2);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.panel-title{font-size:13px;font-weight:800;letter-spacing:-.2px;display:flex;align-items:center;gap:7px}
+.panel-body{padding:18px}
+
+/* Recipient mode toggle */
+.mode-toggle{display:flex;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:3px;margin-bottom:16px}
+.mode-btn{flex:1;height:32px;border:none;background:none;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;color:var(--text3);cursor:pointer;transition:all .14s}
+.mode-btn.active{background:var(--surface);color:var(--accent);box-shadow:var(--sh)}
+
+/* School list with checkboxes */
+.school-list{max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r2);background:var(--surf2)}
+.school-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.school-item:last-child{border-bottom:none}
+.school-item:hover{background:var(--surface)}
+.school-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0}
+.school-item-name{font-size:12.5px;font-weight:700;flex:1;min-width:0}
+.school-item-meta{font-size:10.5px;color:var(--text3);margin-top:1px}
+.school-item-nophone{font-size:10px;color:var(--red);font-weight:700;background:var(--red-bg);padding:1px 7px;border-radius:10px;border:1px solid var(--red-border);flex-shrink:0}
+.select-all-row{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;margin-bottom:8px}
+.select-all-row label{font-size:11.5px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:7px;cursor:pointer}
+.select-all-row label input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
+.selected-count{font-size:11.5px;color:var(--accent);font-weight:700;background:var(--accent-light);padding:2px 10px;border-radius:20px;border:1px solid var(--accent-border)}
+
+/* Message compose */
+.mfield{margin-bottom:16px}
+.mfield label{display:block;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.minp{width:100%;height:38px;padding:0 12px;border:1.5px solid var(--border);border-radius:var(--r3);font-family:inherit;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:all .14s}
+.minp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+textarea.minp{height:auto;padding:10px 12px;resize:vertical;min-height:140px;line-height:1.6;font-size:13.5px}
+.char-count{font-size:11px;color:var(--text3);text-align:right;margin-top:5px}
+.char-count.warn{color:var(--amber)}
+.char-count.over{color:var(--red);font-weight:700}
+.var-hint{font-size:11px;color:var(--text3);margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.var-chip{background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-border);padding:1px 8px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;cursor:pointer}
+.var-chip:hover{background:#dbeafe}
+
+.templates-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tpl-chip{
+  background:var(--surf2);border:1px solid var(--border);color:var(--text2);
+  padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:700;
+  cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:5px;
+}
+.tpl-chip:hover{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
+.tpl-chip .x{opacity:.5;font-size:13px;line-height:1}
+.tpl-chip .x:hover{opacity:1;color:var(--red)}
+.tpl-add-chip{background:none;border:1.5px dashed var(--border2);color:var(--text3)}
+.tpl-add-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+
+.preview-box{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;margin-bottom:16px}
+.preview-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.preview-text{font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:12px}
+
+.send-bar{display:flex;align-items:center;gap:10px;padding-top:6px;border-top:1px solid var(--border);margin-top:4px}
+.cost-note{font-size:11.5px;color:var(--green-tx);background:var(--green-bg);border:1px solid var(--green-border);padding:5px 11px;border-radius:20px;font-weight:700}
+
+/* Tables */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;animation:fadeUp .35s .1s ease both;margin-bottom:24px}
+.tbl-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:680px}
+thead th{background:#1e293b;color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:0 16px;text-align:left;height:36px;white-space:nowrap;border-bottom:1px solid #334155}
+thead th.tc{text-align:center}
+tbody td{padding:0 16px;height:48px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surf2)}
+tbody td.tc{text-align:center}
+.t-name{font-weight:700;letter-spacing:-.1px}
+.t-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.t-mono{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text2)}
+.empty-row td{text-align:center;padding:52px;color:var(--text3)}
+.empty-icon{font-size:32px;margin-bottom:10px;opacity:.6}
+
+.sbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:700;letter-spacing:.1px}
+.sbadge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sbadge.sent{background:var(--green-bg);color:var(--green-tx);border:1px solid var(--green-border)}.sbadge.sent::before{background:var(--green)}
+.sbadge.sending{background:var(--amber-bg);color:var(--amber-tx);border:1px solid var(--amber-border)}.sbadge.sending::before{background:var(--amber);animation:pulse 1.5s infinite}
+.sbadge.failed{background:var(--red-bg);color:var(--red-tx);border:1px solid var(--red-border)}.sbadge.failed::before{background:var(--red)}
+.progress-wrap{width:100%;height:6px;background:var(--border);border-radius:6px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#7c3aed);border-radius:6px;transition:width .3s ease}
+
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh3);width:100%;max-width:460px;animation:modalIn .22s cubic-bezier(.22,1,.36,1) both;max-height:90vh;overflow-y:auto}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:none}}
+.modal-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:2}
+.modal-title{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.modal-close{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text3);line-height:1;padding:4px;border-radius:4px;transition:all .12s}.modal-close:hover{color:var(--text);background:var(--surf2)}
+.modal-body{padding:22px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.confirm-icon{font-size:40px;text-align:center;margin-bottom:12px}
+.confirm-msg{font-size:13px;color:var(--text2);text-align:center;line-height:1.7}
+
+/* Toast */
+#tc{position:fixed;top:68px;right:18px;z-index:999;display:flex;flex-direction:column;gap:7px}
+.t{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--r2);font-size:12.5px;font-weight:500;box-shadow:var(--sh2);animation:tin .25s ease;min-width:220px;letter-spacing:-.1px}
+.t.ok{background:#064e3b;color:#ecfdf5;border-left:3px solid #10b981}
+.t.err{background:#7f1d1d;color:#fef2f2;border-left:3px solid #ef4444}
+.t.info{background:#1e3a5f;color:#dbeafe;border-left:3px solid var(--accent)}
+
+.empty-state{text-align:center;padding:48px;color:var(--text3)}
+.empty-state-icon{font-size:32px;margin-bottom:10px;opacity:.5}
+</style>
+</head>
+<body>
+<div id="tc"></div>
+
+<!-- Send progress modal -->
+<div class="overlay" id="progressModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head"><div class="modal-title">📡 Sending Broadcast</div></div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:13px;color:var(--text2);font-weight:600" id="progLabel">Sending messages…</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px" id="progSub">Please don't close this tab</div>
+      </div>
+      <div class="progress-wrap"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text3)">
+        <span id="progDone">0 sent</span><span id="progTotal">of 0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Save template modal -->
+<div class="overlay" id="saveTplModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">💾 Save as Template</div><button class="modal-close" onclick="closeModal('saveTplModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="mfield"><label>Template Name *</label><input class="minp" id="tplName" placeholder="e.g. Term 2 Reminder"></div>
+      <div class="mfield" style="margin-bottom:0"><label>Preview</label>
+        <div class="preview-box" style="margin-bottom:0"><div class="preview-text" id="tplPreview"></div></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('saveTplModal')">Cancel</button><button class="btn btn-primary" onclick="saveTemplate()">Save Template</button></div>
+  </div>
+</div>
+
+<!-- Confirm send modal -->
+<div class="overlay" id="confirmModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head"><div class="modal-title">Confirm Broadcast</div><button class="modal-close" onclick="closeModal('confirmModal')">✕</button></div>
+    <div class="modal-body"><div class="confirm-icon">📨</div><div class="confirm-msg" id="confirmMsg"></div></div>
+    <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('confirmModal')">Cancel</button><button class="btn btn-success" id="confirmSendBtn">✅ Send Now</button></div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">📢</div>
+    <div class="logo-text">
+      <div class="lt">Communications</div>
+      <div class="ls">SMS to School Admins · Kenya CBC</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <span class="owner-pill">👑 Owner</span>
+    <span class="broadcast-pill">📡 Owner-funded</span>
+    <div class="hdr-divider"></div>
+    <button class="btn btn-outline btn-sm" onclick="window.close()">← Back to Dashboard</button>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('compose',this)">✍️ Compose</button>
+  <button class="nav-tab" onclick="switchTab('templates',this)">📋 Templates</button>
+  <button class="nav-tab" onclick="switchTab('history',this)">🕓 History</button>
+</div>
+
+<div class="outer">
+
+  <!-- COMPOSE -->
+  <div class="tab-pane active" id="tab-compose">
+    <div class="stats">
+      <div class="stat-card s-purple"><div class="stat-card-icon">🏫</div><div class="stat-val" id="stTotalSchools">—</div><div class="stat-lbl">Total Schools</div></div>
+      <div class="stat-card s-blue"><div class="stat-card-icon">✅</div><div class="stat-val" id="stHavePhone">—</div><div class="stat-lbl">Have Phone No.</div></div>
+      <div class="stat-card s-red"><div class="stat-card-icon">⚠️</div><div class="stat-val" id="stNoPhone">—</div><div class="stat-lbl">Missing Phone</div></div>
+      <div class="stat-card s-green"><div class="stat-card-icon">📨</div><div class="stat-val" id="stSentToday">—</div><div class="stat-lbl">Sent Today</div></div>
+    </div>
+
+    <div class="compose-grid">
+      <!-- Recipients panel -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">👥 Recipients</div>
+          <span class="selected-count" id="selCount">0 selected</span>
+        </div>
+        <div class="panel-body">
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="modeAll" onclick="setRecipientMode('all')">All Schools</button>
+            <button class="mode-btn" id="modeFiltered" onclick="setRecipientMode('filtered')">By Status</button>
+            <button class="mode-btn" id="modeCustom" onclick="setRecipientMode('custom')">Pick Schools</button>
+          </div>
+
+          <div id="filterModeBox" style="display:none;margin-bottom:14px">
+            <select class="fsel" id="statusFilterSelect" style="width:100%" onchange="applyStatusFilter()">
+              <option value="approved">✅ Approved schools only</option>
+              <option value="pending">⏳ Pending schools only</option>
+              <option value="suspended">🔒 Blocked schools only</option>
+            </select>
+          </div>
+
+          <div id="customModeBox" style="display:none">
+            <div class="search-wrap" style="margin-bottom:10px;width:100%">
+              <input type="text" id="schoolSearchInp" placeholder="Search school or county…" style="width:100%" oninput="renderSchoolList()">
+            </div>
+            <div class="select-all-row">
+              <label><input type="checkbox" id="selectAllChk" onchange="toggleSelectAll(this.checked)"> Select all visible</label>
+            </div>
+            <div class="school-list" id="schoolListBox">
+              <div class="empty-state"><div class="empty-state-icon">🏫</div>Loading schools…</div>
+            </div>
+          </div>
+
+          <div id="allModeBox" style="font-size:12px;color:var(--text2);background:var(--accent-light);border:1px solid var(--accent-border);border-radius:var(--r2);padding:12px 14px;line-height:1.6">
+            📢 Message will be sent to <strong id="allModeCount">all schools</strong> that have a phone number on file.
+          </div>
+        </div>
+      </div>
+
+      <!-- Message panel -->
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">✍️ Message</div></div>
+        <div class="panel-body">
+          <div class="templates-row" id="quickTemplatesRow"></div>
+
+          <div class="mfield">
+            <label>Message <span style="color:var(--red)">*</span></label>
+            <textarea class="minp" id="msgBody" placeholder="e.g. Dear School, the CBE Mark Sheet System will undergo maintenance on Saturday 10pm–12am. Please save your work before then." oninput="updatePreview()"></textarea>
+            <div class="char-count" id="charCount">0 characters · 1 SMS</div>
+            <div class="var-hint">
+              Insert: <span class="var-chip" onclick="insertVar('{{school}}')">{{school}}</span>
+              <span class="var-chip" onclick="insertVar('{{county}}')">{{county}}</span>
+              <span style="color:var(--text3)">— auto-filled per recipient</span>
+            </div>
+          </div>
+
+          <div class="preview-box">
+            <div class="preview-lbl">📱 Preview (first recipient)</div>
+            <div class="preview-text" id="previewText">Your message will appear here…</div>
+          </div>
+
+          <div class="send-bar">
+            <button class="btn btn-outline" onclick="openSaveTemplate()">💾 Save as Template</button>
+            <span class="cost-note">💚 Owner-funded · no school billed</span>
+            <button class="btn btn-success ml-auto" onclick="confirmSend()">📨 Send Broadcast</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATES -->
+  <div class="tab-pane" id="tab-templates">
+    <div class="sec-head">
+      <div class="sec-title">Saved Templates <span class="sec-sub" id="tplCountLabel"></span></div>
+      <div class="sec-tools"><button class="btn btn-outline" onclick="loadTemplates()">🔄 Refresh</button></div>
+    </div>
+    <div id="templatesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
+      <div class="empty-state"><div class="empty-state-icon">📋</div>Loading templates…</div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="tab-pane" id="tab-history">
+    <div class="sec-head">
+      <div class="sec-title">Broadcast History <span class="sec-sub" id="histCountLabel"></span></div>
+      <div class="sec-tools">
+        <div class="search-wrap"><input type="text" id="histSearch" placeholder="Search label…" oninput="renderHistory()"></div>
+        <button class="btn btn-outline" onclick="loadHistory()">🔄 Refresh</button>
+      </div>
+    </div>
+    <div class="table-card"><div class="tbl-scroll"><table>
+      <thead><tr><th>Label</th><th class="tc">Total</th><th class="tc">Sent</th><th class="tc">Failed</th><th class="tc">Status</th><th>Sent At</th><th class="tc">Action</th></tr></thead>
+      <tbody id="histTbody"><tr class="empty-row"><td colspan="7"><div class="empty-icon">🕓</div><div>Loading…</div></td></tr></tbody>
+    </table></div></div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script>
+// ════════════════════════════════════════════════════════════════
+//  CONFIG — same Firebase project as the owner dashboard.
+//  Update BACKEND_URL if your Render service URL differs.
+// ════════════════════════════════════════════════════════════════
+firebase.initializeApp({apiKey:"AIzaSyBdabXqlBQ-6yVNJKdu8Zhb9Cm_-59_u24",authDomain:"bett-294a2.firebaseapp.com",projectId:"bett-294a2",storageBucket:"bett-294a2.appspot.com",messagingSenderId:"1055511650032",appId:"1:1055511650032:web:7e0f9c28e58515f549ac35"});
+const db = firebase.firestore(), auth = firebase.auth();
+const BACKEND_URL = 'https://instasend-backend.onrender.com';
+
+const el = id => document.getElementById(id);
+let allSchools = [];
+let recipientMode = 'all';
+let selectedSchoolIds = new Set();
+let allTemplates = [];
+let allHistory = [];
+let DEFAULT_TEMPLATES = [
+  { id: '_default_payment', name: '💰 Payment Due', body: 'Dear {{school}} Administrator,\n\nThis is a reminder that your CBE Mark Sheet System payment is due. Please pay via M-Pesa to keep your account active.\n\nThank you.' },
+  { id: '_default_expired', name: '⏰ Licence Expired', body: 'Dear {{school}} Administrator,\n\nYour CBE Mark Sheet System licence has expired. Please renew to restore access.\n\nThank you.' },
+  { id: '_default_maintenance', name: '🛠️ Maintenance Notice', body: 'Dear {{school}} Administrator,\n\nThe CBE Mark Sheet System will undergo scheduled maintenance. Please save your work beforehand. We apologize for any inconvenience.\n\nCBE System' },
+  { id: '_default_update', name: '🆕 Feature Update', body: 'Dear {{school}} Administrator,\n\nWe have rolled out a new update to the CBE Mark Sheet System. Log in to check out the latest improvements.\n\nCBE System' },
+];
+
+function toast(msg,type='ok'){const t=document.createElement('div');t.className=`t ${type}`;t.innerHTML=`<span>${type==='ok'?'✅':type==='err'?'❌':'ℹ️'}</span>${msg}`;el('tc').appendChild(t);setTimeout(()=>{t.style.animation='tout .25s ease forwards';setTimeout(()=>t.remove(),280);},3200);}
+function openModal(id){el(id).classList.add('open');}
+function closeModal(id){el(id).classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));});
+function switchTab(name,btn){document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));el('tab-'+name).classList.add('active');btn.classList.add('active');if(name==='templates')loadTemplates();if(name==='history')loadHistory();}
+
+// ── AUTH GUARD (reuse session set by owner dashboard) ──
+auth.onAuthStateChanged(u=>{
+  if(!u){
+    toast('Not signed in — open this page from the Owner Dashboard','err');
+  }
+  loadSchools();
+});
+
+// ── LOAD SCHOOLS ──
+async function loadSchools(){
+  try{
+    const snap = await db.collection('approvedSchools').get();
+    allSchools = [];
+    snap.forEach(d=>allSchools.push({id:d.id, ...d.data()}));
+    updateStats();
+    renderSchoolList();
+    renderQuickTemplates();
+  }catch(e){
+    toast('Failed to load schools: '+e.message,'err');
+  }
+}
+function getPhone(s){ return s.phone || s.adminPhone || s.contactPhone || ''; }
+function normPhoneDisplay(p){ if(!p) return ''; let v=p.toString().replace(/\D/g,''); if(v.startsWith('0')) v='254'+v.slice(1); if(!v.startsWith('254')) v='254'+v; return v; }
+
+function updateStats(){
+  const withPhone = allSchools.filter(s=>getPhone(s));
+  el('stTotalSchools').textContent = allSchools.length;
+  el('stHavePhone').textContent = withPhone.length;
+  el('stNoPhone').textContent = allSchools.length - withPhone.length;
+  el('allModeCount').textContent = withPhone.length + ' school' + (withPhone.length!==1?'s':'');
+  const todayStr = new Date().toDateString();
+  let sentToday = 0;
+  allHistory.forEach(h=>{ if(h.createdAt && new Date(h.createdAt).toDateString()===todayStr) sentToday += (h.sentCount||0); });
+  el('stSentToday').textContent = sentToday;
+}
+
+// ── RECIPIENT MODE ──
+function setRecipientMode(mode){
+  recipientMode = mode;
+  ['modeAll','modeFiltered','modeCustom'].forEach(id=>el(id).classList.remove('active'));
+  el('mode'+mode.charAt(0).toUpperCase()+mode.slice(1)).classList.add('active');
+  el('allModeBox').style.display = mode==='all' ? 'block' : 'none';
+  el('filterModeBox').style.display = mode==='filtered' ? 'block' : 'none';
+  el('customModeBox').style.display = mode==='custom' ? 'block' : 'none';
+  if(mode==='custom') renderSchoolList();
+  updateSelectedCount();
+}
+function applyStatusFilter(){ updateSelectedCount(); }
+
+function getRecipients(){
+  const withPhone = allSchools.filter(s=>getPhone(s));
+  if(recipientMode==='all') return withPhone;
+  if(recipientMode==='filtered'){
+    const f = el('statusFilterSelect').value;
+    return withPhone.filter(s=>(s.status||'pending')===f);
+  }
+  // custom
+  return withPhone.filter(s=>selectedSchoolIds.has(s.id));
+}
+function updateSelectedCount(){
+  const n = getRecipients().length;
+  el('selCount').textContent = n + ' selected';
+  updatePreview();
+}
+
+function renderSchoolList(){
+  const q = (el('schoolSearchInp')?.value || '').trim().toLowerCase();
+  const list = allSchools.filter(s=>!q || [s.schoolName,s.county].some(v=>(v||'').toLowerCase().includes(q)));
+  if(!list.length){ el('schoolListBox').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏫</div>No schools found</div>'; return; }
+  el('schoolListBox').innerHTML = list.map(s=>{
+    const phone = getPhone(s);
+    const checked = selectedSchoolIds.has(s.id) ? 'checked' : '';
+    return `<label class="school-item">
+      <input type="checkbox" ${checked} ${!phone?'disabled':''} onchange="toggleSchool('${s.id}',this.checked)">
+      <div style="flex:1;min-width:0">
+        <div class="school-item-name">${s.schoolName||'Unknown School'}</div>
+        <div class="school-item-meta">${s.county||'—'} ${phone?'· '+normPhoneDisplay(phone):''}</div>
+      </div>
+      ${!phone?'<span class="school-item-nophone">no phone</span>':''}
+    </label>`;
+  }).join('');
+}
+function toggleSchool(id,checked){ if(checked) selectedSchoolIds.add(id); else selectedSchoolIds.delete(id); updateSelectedCount(); }
+function toggleSelectAll(checked){
+  const q = (el('schoolSearchInp')?.value || '').trim().toLowerCase();
+  const visible = allSchools.filter(s=>(!q || [s.schoolName,s.county].some(v=>(v||'').toLowerCase().includes(q))) && getPhone(s));
+  visible.forEach(s=> checked ? selectedSchoolIds.add(s.id) : selectedSchoolIds.delete(s.id));
+  renderSchoolList(); updateSelectedCount();
+}
+
+// ── MESSAGE / TEMPLATES ──
+function renderQuickTemplates(){
+  const combined = [...DEFAULT_TEMPLATES, ...allTemplates];
+  el('quickTemplatesRow').innerHTML = combined.map(t=>
+    `<span class="tpl-chip" onclick="applyTemplate('${t.id}')">${t.name}${!t.id.startsWith('_default')?` <span class="x" onclick="event.stopPropagation();deleteTemplate('${t.id}')">✕</span>`:''}</span>`
+  ).join('') + `<span class="tpl-chip tpl-add-chip" onclick="switchTab('templates',document.querySelectorAll('.nav-tab')[1])">+ More templates</span>`;
+}
+function applyTemplate(id){
+  const t = [...DEFAULT_TEMPLATES, ...allTemplates].find(x=>x.id===id);
+  if(!t) return;
+  el('msgBody').value = t.body;
+  updatePreview();
+}
+function insertVar(v){
+  const ta = el('msgBody');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  ta.value = ta.value.slice(0,start) + v + ta.value.slice(end);
+  ta.focus(); ta.selectionStart = ta.selectionEnd = start + v.length;
+  updatePreview();
+}
+function fillVars(template, school){
+  return template.replace(/\{\{school\}\}/g, school?.schoolName||'').replace(/\{\{county\}\}/g, school?.county||'');
+}
+function updatePreview(){
+  const raw = el('msgBody').value;
+  const len = raw.length;
+  const sms = Math.max(1, Math.ceil(len/160));
+  const cc = el('charCount');
+  cc.textContent = `${len} characters · ${sms} SMS`;
+  cc.className = 'char-count' + (sms>3?' over':sms>1?' warn':'');
+  const recipients = getRecipients();
+  const sample = recipients[0];
+  el('previewText').textContent = raw ? fillVars(raw, sample) : 'Your message will appear here…';
+}
+el('msgBody').addEventListener('input', updatePreview);
+
+// ── SEND ──
+function confirmSend(){
+  const msg = el('msgBody').value.trim();
+  if(!msg){ toast('Write a message first','err'); return; }
+  const recipients = getRecipients();
+  if(!recipients.length){ toast('No recipients with a phone number match your selection','err'); return; }
+  el('confirmMsg').innerHTML = `Send this message to <strong>${recipients.length}</strong> school${recipients.length!==1?'s':''}?<br><small style="color:var(--green-tx)">This is owner-funded — no school wallet will be charged.</small>`;
+  el('confirmSendBtn').onclick = ()=>{ closeModal('confirmModal'); sendBroadcast(recipients, msg); };
+  openModal('confirmModal');
+}
+async function sendBroadcast(recipients, rawMsg){
+  openModal('progressModal');
+  el('progLabel').textContent = 'Sending messages…';
+  el('progTotal').textContent = 'of ' + recipients.length;
+  el('progFill').style.width = '0%';
+  el('progDone').textContent = '0 sent';
+
+  const payloadRecipients = recipients.map(s=>({
+    to: getPhone(s),
+    message: fillVars(rawMsg, s),
+    schoolId: s.id,
+    schoolName: s.schoolName || '',
+  }));
+
+  const label = recipientMode==='all' ? 'All Schools'
+              : recipientMode==='filtered' ? ('Status: ' + el('statusFilterSelect').value)
+              : ('Custom (' + recipients.length + ' schools)');
+
+  try{
+    const resp = await fetch(BACKEND_URL + '/api/sms/owner-broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipients: payloadRecipients, label, requestId: 'ui-' + Date.now() }),
+    });
+    const data = await resp.json();
+    closeModal('progressModal');
+    if(!resp.ok){
+      toast(data.message || data.error || 'Broadcast failed', 'err');
+      return;
+    }
+    el('progFill').style.width = '100%';
+    el('progDone').textContent = data.summary.sent + ' sent';
+    toast(`✅ Broadcast sent — ${data.summary.sent} delivered, ${data.summary.failed} failed`, data.summary.failed>0?'info':'ok');
+    loadHistory();
+  }catch(e){
+    closeModal('progressModal');
+    toast('Network error: ' + e.message, 'err');
+  }
+}
+
+// ── SAVE TEMPLATE ──
+function openSaveTemplate(){
+  const msg = el('msgBody').value.trim();
+  if(!msg){ toast('Write a message before saving as template','err'); return; }
+  el('tplName').value = '';
+  el('tplPreview').textContent = msg;
+  openModal('saveTplModal');
+}
+async function saveTemplate(){
+  const name = el('tplName').value.trim();
+  const body = el('msgBody').value.trim();
+  if(!name){ toast('Template name required','err'); return; }
+  try{
+    await db.collection('smsTemplates').add({
+      name, body,
+      createdAt: new Date().toISOString(),
+      createdBy: auth.currentUser?.email || 'owner',
+    });
+    toast('✅ Template saved');
+    closeModal('saveTplModal');
+    loadTemplates();
+  }catch(e){ toast('Failed: '+e.message,'err'); }
+}
+async function loadTemplates(){
+  try{
+    const snap = await db.collection('smsTemplates').orderBy('createdAt','desc').get();
+    allTemplates = [];
+    snap.forEach(d=>allTemplates.push({id:d.id, ...d.data()}));
+    renderQuickTemplates();
+    renderTemplatesGrid();
+  }catch(e){
+    el('templatesGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div>Could not load templates: ${e.message}</div>`;
+  }
+}
+function renderTemplatesGrid(){
+  const combined = [...DEFAULT_TEMPLATES.map(t=>({...t,isDefault:true})), ...allTemplates];
+  el('tplCountLabel').textContent = '(' + combined.length + ' total)';
+  if(!combined.length){ el('templatesGrid').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div>No templates yet</div>'; return; }
+  el('templatesGrid').innerHTML = combined.map(t=>`
+    <div class="panel" style="margin:0">
+      <div class="panel-head"><div class="panel-title">${t.name}</div>${t.isDefault?'<span style="font-size:10px;color:var(--text3);font-weight:700">BUILT-IN</span>':`<button class="btn btn-ghost btn-sm" onclick="deleteTemplate('${t.id}')">🗑️</button>`}</div>
+      <div class="panel-body">
+        <div class="preview-box" style="margin-bottom:12px"><div class="preview-text">${t.body}</div></div>
+        <button class="btn btn-primary" style="width:100%" onclick="useTemplateAndGo('${t.id}')">Use This Template</button>
+      </div>
+    </div>
+  `).join('');
+}
+function useTemplateAndGo(id){
+  applyTemplate(id);
+  switchTab('compose', document.querySelectorAll('.nav-tab')[0]);
+}
+async function deleteTemplate(id){
+  if(id.startsWith('_default')){ toast("Built-in templates can't be deleted",'info'); return; }
+  if(!confirm('Delete this template?')) return;
+  try{
+    await db.collection('smsTemplates').doc(id).delete();
+    toast('Template deleted');
+    loadTemplates();
+  }catch(e){ toast('Failed: '+e.message,'err'); }
+}
+
+// ── HISTORY ──
+async function loadHistory(){
+  try{
+    const snap = await db.collection('ownerBroadcasts').orderBy('createdAt','desc').limit(100).get();
+    allHistory = [];
+    snap.forEach(d=>allHistory.push({id:d.id, ...d.data()}));
+    updateStats();
+    renderHistory();
+  }catch(e){
+    el('histTbody').innerHTML = `<tr class="empty-row"><td colspan="7"><div class="empty-icon">⚠️</div><div>Could not load: ${e.message}</div></td></tr>`;
+  }
+}
+function renderHistory(){
+  const q = el('histSearch').value.trim().toLowerCase();
+  const list = allHistory.filter(h=>!q || (h.label||'').toLowerCase().includes(q));
+  el('histCountLabel').textContent = '(' + list.length + ' broadcasts)';
+  if(!list.length){ el('histTbody').innerHTML = '<tr class="empty-row"><td colspan="7"><div class="empty-icon">🕓</div><div>No broadcasts sent yet</div></td></tr>'; return; }
+  el('histTbody').innerHTML = list.map(h=>{
+    const time = h.createdAt ? new Date(h.createdAt).toLocaleString('en-KE') : '—';
+    const statusBadge = h.status==='done' ? `<span class="sbadge sent">DONE</span>` : `<span class="sbadge sending">SENDING</span>`;
+    return `<tr>
+      <td class="t-name">${h.label||'Broadcast'}</td>
+      <td class="tc t-mono">${h.totalCount||0}</td>
+      <td class="tc t-mono" style="color:var(--green)">${h.sentCount||0}</td>
+      <td class="tc t-mono" style="color:${h.failedCount?'var(--red)':'var(--text3)'}">${h.failedCount||0}</td>
+      <td class="tc">${statusBadge}</td>
+      <td style="font-size:12px;color:var(--text2)">${time}</td>
+      <td class="tc"><button class="btn btn-outline btn-sm" onclick="viewBroadcast('${h.id}')">🔍 Details</button></td>
+    </tr>`;
+  }).join('');
+}
+async function viewBroadcast(id){
+  try{
+    const resp = await fetch(BACKEND_URL + '/api/sms/owner-broadcast/' + id);
+    const data = await resp.json();
+    if(!resp.ok){ toast(data.error||'Could not load broadcast','err'); return; }
+    const lines = (data.recipients||[]).map(r=>`${r.status==='sent'?'✅':'❌'} ${r.schoolName||r.to} — ${r.to} (${r.atStatus||r.status})`).join('\n');
+    alert(`${data.label}\n\n${data.sentCount} sent / ${data.failedCount} failed\n\n${lines || 'No recipient detail logged.'}`);
+  }catch(e){ toast('Failed: '+e.message,'err'); }
+}
+
+// ── INIT ──
+loadTemplates();
+loadHistory();
+</script>
+</body>
+</html>
